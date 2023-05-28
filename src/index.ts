@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import fs from 'fs';
 
 import Sonarqube from './sonarqube'
 
@@ -18,7 +19,9 @@ async function run() {
     const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
     const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
 
+    createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
+
 
     // `who-to-greet` input defined in action metadata file
     const nameToGreet = core.getInput('who-to-greet');
@@ -33,6 +36,16 @@ async function run() {
   } catch (error: any) {
     core.setFailed(error.message);
   }
+}
+
+function createFolder(folderPath: string) {
+  fs.mkdir(folderPath, { recursive: true }, (err) => {
+    if (err) {
+      console.error(`Error creating folder: ${err}`);
+      return;
+    }
+    console.log('Folder created successfully.');
+  });
 }
 
 run();

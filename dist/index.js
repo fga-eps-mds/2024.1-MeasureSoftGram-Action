@@ -11922,6 +11922,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(4376));
 const github = __importStar(__nccwpck_require__(75));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
 const sonarqube_1 = __importDefault(__nccwpck_require__(5871));
 async function run() {
     try {
@@ -11934,6 +11935,7 @@ async function run() {
         console.log('Measures: ', measures);
         const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
         const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
+        createFolder('./analytics-raw-data');
         console.log(`Writing file to ${file_path}`);
         // `who-to-greet` input defined in action metadata file
         const nameToGreet = core.getInput('who-to-greet');
@@ -11949,6 +11951,15 @@ async function run() {
     catch (error) {
         core.setFailed(error.message);
     }
+}
+function createFolder(folderPath) {
+    fs_1.default.mkdir(folderPath, { recursive: true }, (err) => {
+        if (err) {
+            console.error(`Error creating folder: ${err}`);
+            return;
+        }
+        console.log('Folder created successfully.');
+    });
 }
 run();
 
