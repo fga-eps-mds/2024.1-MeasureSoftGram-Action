@@ -29,6 +29,13 @@ async function run() {
     });
 
     await exec('pip', ['install', 'msgram==1.1.0'])
+    await exec('msgram', ['init']);
+    await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
+    await exec('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
+
+    // read file fromt .msgram/calc_msgram.json
+    const data = fs.readFileSync('.msgram/calc_msgram.json', 'utf8');
+    console.log(data);
 
     // `who-to-greet` input defined in action metadata file
     const nameToGreet = core.getInput('who-to-greet');

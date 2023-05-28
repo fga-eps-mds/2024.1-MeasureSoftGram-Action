@@ -13175,6 +13175,12 @@ async function run() {
             console.log('Data written to file.');
         });
         await (0, exec_1.exec)('pip', ['install', 'msgram==1.1.0']);
+        await (0, exec_1.exec)('msgram', ['init']);
+        await (0, exec_1.exec)('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
+        await (0, exec_1.exec)('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
+        // read file fromt .msgram/calc_msgram.json
+        const data = fs_1.default.readFileSync('.msgram/calc_msgram.json', 'utf8');
+        console.log(data);
         // `who-to-greet` input defined in action metadata file
         const nameToGreet = core.getInput('who-to-greet');
         const sonarQubeHost = core.getInput('host');
