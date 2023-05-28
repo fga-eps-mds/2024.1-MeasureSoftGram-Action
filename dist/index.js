@@ -11932,6 +11932,9 @@ async function run() {
             pageSize: 500,
         });
         console.log('Measures: ', measures);
+        const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
+        const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
+        console.log(`Writing file to ${file_path}`);
         // `who-to-greet` input defined in action metadata file
         const nameToGreet = core.getInput('who-to-greet');
         const sonarQubeHost = core.getInput('host');
