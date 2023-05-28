@@ -1,6 +1,30 @@
 import axios, { AxiosInstance } from 'axios';
 import * as core from '@actions/core';
 
+interface MeasuresResponseAPI {
+  paging: {
+      pageIndex: number
+      pageSize: number
+      total: number
+  },
+  baseComponent : {
+      id: string
+      key: string
+      name: string
+      qualifier: string
+      measures: [any]
+  },
+  components: {
+      id: string
+      key: string
+      name: string
+      qualifier: string
+      path: string
+      language: string
+      measures: [any]
+  },
+}
+
 export default class Sonarqube {
   private http: AxiosInstance
   public host: string
