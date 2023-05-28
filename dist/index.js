@@ -11937,6 +11937,11 @@ async function run() {
         const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
         createFolder('./analytics-raw-data');
         console.log(`Writing file to ${file_path}`);
+        fs_1.default.writeFile(file_path, JSON.stringify(measures), (err) => {
+            if (err)
+                throw err;
+            console.log('Data written to file.');
+        });
         // `who-to-greet` input defined in action metadata file
         const nameToGreet = core.getInput('who-to-greet');
         const sonarQubeHost = core.getInput('host');
