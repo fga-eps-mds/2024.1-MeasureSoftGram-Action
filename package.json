@@ -1,0 +1,30 @@
+{
+  "name": "2023-1-measuresoftgram-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build src/index.ts --source-map --license licenses.txt --out dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Action.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Action/issues"
+  },
+  "homepage": "https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Action#readme",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "^5.1.1",
+    "axios": "^1.4.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5"
+  }
+}
