@@ -53,7 +53,7 @@ async function run() {
     console.log(result[0].sqc[0].value);
 
     const octokit = github.getOctokit(
-      core.getInput('repo-token', {required: true})
+      core.getInput('githubToken', {required: true})
     );
     const issue: {owner: string; repo: string; number: number} = github.context.issue;
     const message = `

@@ -13185,7 +13185,7 @@ async function run() {
         // print sqc values from result
         console.log('sqc values:');
         console.log(result[0].sqc[0].value);
-        const octokit = github.getOctokit(core.getInput('repo-token', { required: true }));
+        const octokit = github.getOctokit(core.getInput('githubToken', { required: true }));
         const issue = github.context.issue;
         const message = `
       ## Sonarqube Analysis Results\n\n
