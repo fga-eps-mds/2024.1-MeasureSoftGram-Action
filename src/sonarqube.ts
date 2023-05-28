@@ -32,7 +32,6 @@ export default class Sonarqube {
   private token: string
   public project: {
     projectKey: string
-    projectBaseDir: string
   }
   private sonarMetrics = [
       'files',

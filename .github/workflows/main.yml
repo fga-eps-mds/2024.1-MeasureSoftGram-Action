@@ -12,4 +12,5 @@ jobs:
         id: hello
         with:
           host: ${{ secrets.SQHost }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           projectKey: "fga-eps-mds_2023-1-MeasureSoftGram-Front"

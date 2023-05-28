@@ -13166,8 +13166,7 @@ async function run() {
         const measures = await sonarqube.getMeasures({
             pageSize: 500,
         });
-        const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
-        const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
+        const file_path = generateFilePath(currentDate, repo.repo);
         createFolder('./analytics-raw-data');
         console.log(`Writing file to ${file_path}`);
         fs_1.default.writeFile(file_path, JSON.stringify(measures), (err) => {
@@ -13186,6 +13185,21 @@ async function run() {
         // print sqc values from result
         console.log('sqc values:');
         console.log(result[0].sqc[0].value);
+        const octokit = github.getOctokit(core.getInput('repo-token', { required: true }));
+        const issue = github.context.issue;
+        const message = `
+      ## Sonarqube Analysis Results\n\n
+      ### SQC Values\n\n
+      ${result[0].sqc[0].value}\n\n
+      ### Measures\n\n
+      ${JSON.stringify(measures)}`;
+        await octokit.rest.pulls.createReview({
+            owner: issue.owner,
+            repo: issue.repo,
+            pull_number: issue.number,
+            body: message,
+            event: 'COMMENT'
+        });
     }
     catch (error) {
         core.setFailed(error.message);
@@ -13199,6 +13213,11 @@ function createFolder(folderPath) {
         }
         console.log('Folder created successfully.');
     });
+}
+function generateFilePath(currentDate, repo) {
+    const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
+    const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
+    return file_path;
 }
 run();
 
@@ -13302,7 +13321,6 @@ function getInfo(repo) {
             projectKey: core.getInput('projectKey')
                 ? core.getInput('projectKey')
                 : `${repo.owner}_${repo.repo}`,
-            projectBaseDir: core.getInput('projectBaseDir'),
         },
         host: core.getInput('host'),
         token: core.getInput('token'),

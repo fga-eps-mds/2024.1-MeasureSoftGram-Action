@@ -26,10 +26,7 @@ async function run() {
       pageSize: 500,
     })
 
-    
-
-    const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
-    const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
+    const file_path = generateFilePath(currentDate, repo.repo);
 
     createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
@@ -55,6 +52,24 @@ async function run() {
     console.log('sqc values:');
     console.log(result[0].sqc[0].value);
 
+    const octokit = github.getOctokit(
+      core.getInput('repo-token', {required: true})
+    );
+    const issue: {owner: string; repo: string; number: number} = github.context.issue;
+    const message = `
+      ## Sonarqube Analysis Results\n\n
+      ### SQC Values\n\n
+      ${result[0].sqc[0].value}\n\n
+      ### Measures\n\n
+      ${JSON.stringify(measures)}`;
+
+    await octokit.rest.pulls.createReview({
+      owner: issue.owner,
+      repo: issue.repo,
+      pull_number: issue.number,
+      body: message,
+      event: 'COMMENT'
+    });
   } catch (error: any) {
     core.setFailed(error.message);
   }
@@ -68,6 +83,13 @@ function createFolder(folderPath: string) {
     }
     console.log('Folder created successfully.');
   });
+}
+
+function generateFilePath(currentDate: Date, repo: string) {
+  const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
+  const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
+
+  return file_path;
 }
 
 run();
