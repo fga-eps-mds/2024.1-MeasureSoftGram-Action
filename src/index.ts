@@ -15,8 +15,6 @@ async function run() {
       pageSize: 500,
     })
 
-    console.log('Measures: ', measures);
-
     const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
     const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
 
@@ -33,20 +31,8 @@ async function run() {
     await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
     await exec('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
 
-    // read file fromt .msgram/calc_msgram.json
     const data = fs.readFileSync('.msgram/calc_msgram.json', 'utf8');
     console.log(data);
-
-    // `who-to-greet` input defined in action metadata file
-    const nameToGreet = core.getInput('who-to-greet');
-    const sonarQubeHost = core.getInput('host');
-    console.log(`sonarQubeHost: ${sonarQubeHost}`);
-    console.log(`Hello ${nameToGreet}!`);
-    const time = (new Date()).toTimeString();
-    core.setOutput("time", time);
-    // Get the JSON webhook payload for the event that triggered the workflow
-    const payload = JSON.stringify(github.context.payload, undefined, 2)
-    console.log(`The event payload: ${payload}`);
   } catch (error: any) {
     core.setFailed(error.message);
   }
