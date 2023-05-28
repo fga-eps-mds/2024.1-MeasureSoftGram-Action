@@ -51,24 +51,48 @@ export default class Sonarqube {
   ]
 
   constructor(repo: { owner: string; repo: string }) {
-      const info = this.getInfo(repo)
+    const info = this.getInfo(repo)
 
-      this.host = info.host
-      this.token = info.token
-      this.project = info.project
-      const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
+    this.host = info.host
+    this.token = info.token
+    this.project = info.project
+    const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
 
-      console.log(`SonarQube host: ${this.host}`)
-      console.log(`SonarQube project: ${this.project.projectKey}`)
+    console.log(`SonarQube host: ${this.host}`)
+    console.log(`SonarQube project: ${this.project.projectKey}`)
 
-      this.http = axios.create({
-          baseURL: this.host,
-          timeout: 10000,
-          headers: {
-            Authorization: this.token ? `Basic ${tokenb64}` : "",
-          }
-      })
+    this.http = axios.create({
+        baseURL: this.host,
+        timeout: 10000,
+        headers: {
+          Authorization: this.token ? `Basic ${tokenb64}` : "",
+        }
+    })
   }
+
+  public getMeasures = async ({
+    pageSize
+  }: {
+      pageSize: number
+  }): Promise<MeasuresResponseAPI> => {
+  try {
+    const response = await this.http.get<MeasuresResponseAPI>(
+      `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
+    )
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(
+        'Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.'
+      )
+    }
+
+    return response.data        
+  } catch (err) {
+    throw new Error(
+      'Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.'
+    )
+  }
+}
 
   private getInfo = (repo: { owner: string; repo: string }) => ({
     project: {
