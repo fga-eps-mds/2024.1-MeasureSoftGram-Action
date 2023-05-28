@@ -13181,25 +13181,17 @@ async function run() {
         const data = fs_1.default.readFileSync('.msgram/calc_msgram.json', 'utf8');
         console.log(data);
         const result = JSON.parse(data);
-        console.log('result:', result);
         // print sqc values from result
         console.log('sqc values:');
         console.log(result[0].sqc[0].value);
         const octokit = github.getOctokit(core.getInput('githubToken', { required: true }));
-        const issue = github.context.issue;
-        const message = `
-      ## Sonarqube Analysis Results\n\n
-      ### SQC Values\n\n
-      ${result[0].sqc[0].value}\n\n
-      ### Measures\n\n
-      ${JSON.stringify(measures)}`;
-        await octokit.rest.pulls.createReview({
-            owner: issue.owner,
-            repo: issue.repo,
-            pull_number: issue.number,
-            body: message,
-            event: 'COMMENT'
-        });
+        const { pull_request } = github.context.payload;
+        if (!pull_request) {
+            console.log('No pull request found.');
+            return;
+        }
+        const message = createMessage(result);
+        await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pull_request.number, body: message }));
     }
     catch (error) {
         core.setFailed(error.message);
@@ -13218,6 +13210,22 @@ function generateFilePath(currentDate, repo) {
     const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
     const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
     return file_path;
+}
+// function to create a message with the results
+function createMessage(result) {
+    const message = `
+    ## Sonarqube Analysis Results
+
+    ### SQC Values
+
+    ${result[0].sqc[0].value}
+
+    ### Characteristics Values
+
+    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value}`).join('\n')}
+
+    ###`.trim().replace(/^\s+/gm, '');
+    return message;
 }
 run();
 

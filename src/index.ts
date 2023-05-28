@@ -45,8 +45,6 @@ async function run() {
     console.log(data);
 
     const result: Array<CalculatedMsgram> = JSON.parse(data);
-    
-    console.log('result:', result);
 
     // print sqc values from result
     console.log('sqc values:');
@@ -55,20 +53,19 @@ async function run() {
     const octokit = github.getOctokit(
       core.getInput('githubToken', {required: true})
     );
-    const issue: {owner: string; repo: string; number: number} = github.context.issue;
-    const message = `
-      ## Sonarqube Analysis Results\n\n
-      ### SQC Values\n\n
-      ${result[0].sqc[0].value}\n\n
-      ### Measures\n\n
-      ${JSON.stringify(measures)}`;
+    const { pull_request } = github.context.payload;
 
-    await octokit.rest.pulls.createReview({
-      owner: issue.owner,
-      repo: issue.repo,
-      pull_number: issue.number,
-      body: message,
-      event: 'COMMENT'
+    if (!pull_request) {
+      console.log('No pull request found.');
+      return;
+    }
+
+    const message = createMessage(result);
+
+    await octokit.rest.issues.createComment({
+      ...github.context.repo,
+      issue_number: pull_request.number,
+      body: message
     });
   } catch (error: any) {
     core.setFailed(error.message);
@@ -90,6 +87,24 @@ function generateFilePath(currentDate: Date, repo: string) {
   const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
 
   return file_path;
+}
+
+// function to create a message with the results
+function createMessage(result: Array<CalculatedMsgram>) {
+  const message = `
+    ## Sonarqube Analysis Results
+
+    ### SQC Values
+
+    ${result[0].sqc[0].value}
+
+    ### Characteristics Values
+
+    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value}`).join('\n')}
+
+    ###`.trim().replace(/^\s+/gm, '');
+
+  return message;
 }
 
 run();
