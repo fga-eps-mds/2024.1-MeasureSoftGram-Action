@@ -3,17 +3,30 @@ import * as github from '@actions/github';
 import { exec } from '@actions/exec';
 import fs from 'fs';
 
+import { getInfo, Info } from './utils';
 import Sonarqube from './sonarqube'
+
+interface CalculatedMsgram {
+  repository: { key: string; value: string }[];
+  version: { key: string; value: string }[];
+  measures: { key: string; value: number }[];
+  subcharacteristics: { key: string; value: number }[];
+  characteristics: { key: string; value: number }[];
+  sqc: { key: string; value: number }[];
+}
 
 async function run() {
   try {
     const { repo } = github.context
-    const sonarqube = new Sonarqube(repo)
+    const info:Info = getInfo(repo)
+    const sonarqube = new Sonarqube(info)
     const currentDate = new Date();
 
     const measures = await sonarqube.getMeasures({
       pageSize: 500,
     })
+
+    
 
     const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
     const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
@@ -33,6 +46,15 @@ async function run() {
 
     const data = fs.readFileSync('.msgram/calc_msgram.json', 'utf8');
     console.log(data);
+
+    const result: Array<CalculatedMsgram> = JSON.parse(data);
+    
+    console.log('result:', result);
+
+    // print sqc values from result
+    console.log('sqc values:');
+    console.log(result[0].sqc[0].value);
+
   } catch (error: any) {
     core.setFailed(error.message);
   }

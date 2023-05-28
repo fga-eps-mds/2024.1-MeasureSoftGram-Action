@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import * as core from '@actions/core';
+
+import { Info } from './utils';
 
 interface MeasuresResponseAPI {
   paging: {
@@ -50,9 +51,7 @@ export default class Sonarqube {
       'reliability_rating',
   ]
 
-  constructor(repo: { owner: string; repo: string }) {
-    const info = this.getInfo(repo)
-
+  constructor(info: Info) {
     this.host = info.host
     this.token = info.token
     this.project = info.project
@@ -74,34 +73,23 @@ export default class Sonarqube {
     pageSize
   }: {
       pageSize: number
-  }): Promise<MeasuresResponseAPI> => {
-  try {
-    const response = await this.http.get<MeasuresResponseAPI>(
-      `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
-    )
+    }): Promise<MeasuresResponseAPI> => {
+    try {
+      const response = await this.http.get<MeasuresResponseAPI>(
+        `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
+      )
 
-    if (response.status !== 200 || !response.data) {
+      if (response.status !== 200 || !response.data) {
+        throw new Error(
+          'Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.'
+        )
+      }
+
+      return response.data        
+    } catch (err) {
       throw new Error(
         'Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.'
       )
     }
-
-    return response.data        
-  } catch (err) {
-    throw new Error(
-      'Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.'
-    )
   }
-}
-
-  private getInfo = (repo: { owner: string; repo: string }) => ({
-    project: {
-        projectKey: core.getInput('projectKey')
-            ? core.getInput('projectKey')
-            : `${repo.owner}_${repo.repo}`,
-        projectBaseDir: core.getInput('projectBaseDir'),
-    },
-    host: core.getInput('host'),
-    token: core.getInput('token'),
-  })
 }

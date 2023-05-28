@@ -13155,16 +13155,17 @@ const core = __importStar(__nccwpck_require__(4376));
 const github = __importStar(__nccwpck_require__(75));
 const exec_1 = __nccwpck_require__(6788);
 const fs_1 = __importDefault(__nccwpck_require__(7147));
+const utils_1 = __nccwpck_require__(6289);
 const sonarqube_1 = __importDefault(__nccwpck_require__(5871));
 async function run() {
     try {
         const { repo } = github.context;
-        const sonarqube = new sonarqube_1.default(repo);
+        const info = (0, utils_1.getInfo)(repo);
+        const sonarqube = new sonarqube_1.default(info);
         const currentDate = new Date();
         const measures = await sonarqube.getMeasures({
             pageSize: 500,
         });
-        console.log('Measures: ', measures);
         const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
         const file_path = `./analytics-raw-data/fga-eps-mds-${repo.repo}-${formattedDate}.json`;
         createFolder('./analytics-raw-data');
@@ -13178,19 +13179,13 @@ async function run() {
         await (0, exec_1.exec)('msgram', ['init']);
         await (0, exec_1.exec)('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
         await (0, exec_1.exec)('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
-        // read file fromt .msgram/calc_msgram.json
         const data = fs_1.default.readFileSync('.msgram/calc_msgram.json', 'utf8');
         console.log(data);
-        // `who-to-greet` input defined in action metadata file
-        const nameToGreet = core.getInput('who-to-greet');
-        const sonarQubeHost = core.getInput('host');
-        console.log(`sonarQubeHost: ${sonarQubeHost}`);
-        console.log(`Hello ${nameToGreet}!`);
-        const time = (new Date()).toTimeString();
-        core.setOutput("time", time);
-        // Get the JSON webhook payload for the event that triggered the workflow
-        const payload = JSON.stringify(github.context.payload, undefined, 2);
-        console.log(`The event payload: ${payload}`);
+        const result = JSON.parse(data);
+        console.log('result:', result);
+        // print sqc values from result
+        console.log('sqc values:');
+        console.log(result[0].sqc[0].value);
     }
     catch (error) {
         core.setFailed(error.message);
@@ -13215,37 +13210,13 @@ run();
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const axios_1 = __importDefault(__nccwpck_require__(1233));
-const core = __importStar(__nccwpck_require__(4376));
 class Sonarqube {
-    constructor(repo) {
+    constructor(info) {
         this.sonarMetrics = [
             'files',
             'functions',
@@ -13274,17 +13245,6 @@ class Sonarqube {
                 throw new Error('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
             }
         };
-        this.getInfo = (repo) => ({
-            project: {
-                projectKey: core.getInput('projectKey')
-                    ? core.getInput('projectKey')
-                    : `${repo.owner}_${repo.repo}`,
-                projectBaseDir: core.getInput('projectBaseDir'),
-            },
-            host: core.getInput('host'),
-            token: core.getInput('token'),
-        });
-        const info = this.getInfo(repo);
         this.host = info.host;
         this.token = info.token;
         this.project = info.project;
@@ -13301,6 +13261,55 @@ class Sonarqube {
     }
 }
 exports["default"] = Sonarqube;
+
+
+/***/ }),
+
+/***/ 6289:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getInfo = void 0;
+const core = __importStar(__nccwpck_require__(4376));
+function getInfo(repo) {
+    return {
+        project: {
+            projectKey: core.getInput('projectKey')
+                ? core.getInput('projectKey')
+                : `${repo.owner}_${repo.repo}`,
+            projectBaseDir: core.getInput('projectBaseDir'),
+        },
+        host: core.getInput('host'),
+        token: core.getInput('token'),
+    };
+}
+exports.getInfo = getInfo;
+;
 
 
 /***/ }),
