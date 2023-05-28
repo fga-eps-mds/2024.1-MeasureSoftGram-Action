@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import { exec } from '@actions/exec';
 import fs from 'fs';
 
 import Sonarqube from './sonarqube'
@@ -27,6 +28,7 @@ async function run() {
       console.log('Data written to file.');
     });
 
+    await exec('pip', ['install', 'msgram==1.1.0'])
 
     // `who-to-greet` input defined in action metadata file
     const nameToGreet = core.getInput('who-to-greet');
