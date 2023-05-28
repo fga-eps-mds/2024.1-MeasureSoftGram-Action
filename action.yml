@@ -1,6 +1,16 @@
-name: 'Hello World'
+name: 'MeasureSoftGram'
 description: 'Greet someone and record the time'
 inputs:
+  host:
+    description: "SonarQube Server URL"
+    required: true
+  token:
+    description: "Sonarqube token"
+    required: false
+  projectKey:
+    description: "Sonarqube project key. The default key will be 'owner-repository'."
+    required: false
+    default: ""
   who-to-greet:  # id of input
     description: 'Who to greet'
     required: true
