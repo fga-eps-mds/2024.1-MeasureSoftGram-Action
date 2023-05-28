@@ -9646,6 +9646,8 @@ const github = __importStar(__nccwpck_require__(75));
 try {
     // `who-to-greet` input defined in action metadata file
     const nameToGreet = core.getInput('who-to-greet');
+    const sonarQubeHost = core.getInput('host');
+    console.log(`sonarQubeHost: ${sonarQubeHost}`);
     console.log(`Hello ${nameToGreet}!`);
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
