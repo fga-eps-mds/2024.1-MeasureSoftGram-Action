@@ -4,6 +4,9 @@ Esta é uma ação do Github que executa o [Msgram-CLI](https://github.com/fga-e
 
 **Nota:** Esta ação é destinada a ser executada quando um pull request é feito para as branches main ou develop.
 
+## Sobre o Msgram
+O Msgram é um robusto sistema de gerenciamento e avaliação de qualidade de software. Ele atua como uma ferramenta de apoio ao planejamento e comparação das qualidades nas releases, fornecendo uma análise abrangente da qualidade do produto e do processo. Ele retorna valores das métricas analisadas de software e avalia a qualidade a partir de modelos algébricos, analisando múltiplos atributos de qualidade. O Msgram é um projeto de software livre, com foco em prover uma ferramenta acessível e eficiente para a gestão da qualidade do software.
+
 ## Exemplo de Saída
 
 ![Exemplo de Saída](./assets/images/output-actions.png)
@@ -48,9 +51,6 @@ Ao referenciar seu host do SonarQube e o token do GitHub, recomendamos o uso dos
 Os padrões usados para identificar referências a variáveis no seu código são totalmente personalizáveis.
 Esta ação usa o [Msgram](https://github.com/fga-eps-mds/2023-1-measuresoftgram-action) por trás dos panos, para detalhes sobre como configurar a correspondência de padrões, consulte a [configuração do Msgram](https://github.com/fga-eps-mds/2023-1-measuresoftgram-action#configuração). -->
 
-## Sobre o Msgram
-O Msgram é um robusto sistema de gerenciamento e avaliação de qualidade de software. Ele atua como uma ferramenta de apoio ao planejamento e comparação das qualidades nas releases, fornecendo uma análise abrangente da qualidade do produto e do processo. Ele retorna valores das métricas analisadas de software e avalia a qualidade a partir de modelos algébricos, analisando múltiplos atributos de qualidade. O Msgram é um projeto de software livre, com foco em prover uma ferramenta acessível e eficiente para a gestão da qualidade do software.
-
 ## Roadmap
 
 Estamos sempre trabalhando para melhorar e expandir as capacidades do Msgram. Aqui estão algumas atualizações planejadas:
@@ -58,5 +58,5 @@ Estamos sempre trabalhando para melhorar e expandir as capacidades do Msgram. Aq
 - [ ] **Persistência das métricas:** Em futuras atualizações, planejamos permitir o armazenamento das informações geradas pela action (no Github ou no serviço web).
 - [ ] **Configurações personalizáveis:** Planejamos permitir que o usuário altere as configurações a partir do input da ação, puxando do serviço web.
 - [ ] **Expansão da integração do Parser:** O [Parser](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Parser) irá expandir sua integração com ferramentas de análise para além do SonarQube.
-- [ ] **Badges no README:** Estamos trabalhando na funcionalidade que permitirá aos usuários exibir badges com métricas no README do seu repositório. Com isso, você poderá fornecer uma visão rápida da qualidade do software diretamente no seu README.
+- [ ] **Badges no README:** Planejamos adicionar uma funcionalidade que permitirá aos usuários exibir badges com métricas no README do seu repositório. Com isso, você poderá fornecer uma visão rápida da qualidade do software diretamente no seu README.
 
