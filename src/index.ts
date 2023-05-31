@@ -36,7 +36,7 @@ async function run() {
       console.log('Data written to file.');
     });
 
-    await exec('pip', ['install', 'msgram==1.1.0'])
+    await exec('pip', ['install', 'msgram==1.0.2'])
     await exec('msgram', ['init']);
     await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
     await exec('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
