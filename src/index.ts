@@ -38,6 +38,14 @@ async function run() {
 
     await exec('pip', ['install', 'msgram==1.0.2'])
     await exec('msgram', ['init']);
+
+    // overwrite the existing msgram.json file with the new one
+    const msgramConfigPath = core.getInput('msgramConfigPath', {required: true});
+    fs.copyFileSync(msgramConfigPath, './.msgram/msgram.json');
+
+    const data2 = fs.readFileSync('./.msgram/msgram.json', 'utf8');
+    console.log("msgram.json file data: ", data2);
+
     await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
     await exec('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
 
@@ -45,10 +53,6 @@ async function run() {
     console.log(data);
 
     const result: Array<CalculatedMsgram> = JSON.parse(data);
-
-    // print sqc values from result
-    console.log('sqc values:');
-    console.log(result[0].sqc[0].value);
 
     const octokit = github.getOctokit(
       core.getInput('githubToken', {required: true})
