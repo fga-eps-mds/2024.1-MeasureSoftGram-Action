@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
-interface MeasuresResponseAPI {
+export interface MeasuresResponseAPI {
   paging: {
       pageIndex: number
       pageSize: number

@@ -6,7 +6,7 @@ import fs from 'fs';
 import { getInfo, Info } from './utils';
 import Sonarqube from './sonarqube'
 
-interface CalculatedMsgram {
+export interface CalculatedMsgram {
   repository: { key: string; value: string }[];
   version: { key: string; value: string }[];
   measures: { key: string; value: number }[];
@@ -31,7 +31,7 @@ async function run() {
     createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
 
-    fs.writeFile(file_path, JSON.stringify(measures), (err) => {
+    fs.writeFile(file_path, JSON.stringify(measures), (err: any) => {
       if (err) throw err;
       console.log('Data written to file.');
     });
@@ -77,8 +77,8 @@ async function run() {
   }
 }
 
-function createFolder(folderPath: string) {
-  fs.mkdir(folderPath, { recursive: true }, (err) => {
+export function createFolder(folderPath: string) {
+  fs.mkdir(folderPath, { recursive: true }, (err: any) => {
     if (err) {
       console.error(`Error creating folder: ${err}`);
       return;
@@ -87,7 +87,7 @@ function createFolder(folderPath: string) {
   });
 }
 
-function generateFilePath(currentDate: Date, repo: string) {
+export function generateFilePath(currentDate: Date, repo: string) {
   const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
   const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
 
@@ -95,7 +95,7 @@ function generateFilePath(currentDate: Date, repo: string) {
 }
 
 // function to create a message with the results
-function createMessage(result: Array<CalculatedMsgram>) {
+export function createMessage(result: Array<CalculatedMsgram>) {
   const message = `
     ## Sonarqube Analysis Results
 
