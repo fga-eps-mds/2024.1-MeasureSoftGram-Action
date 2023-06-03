@@ -13174,16 +13174,19 @@ async function run() {
                 throw err;
             console.log('Data written to file.');
         });
-        await (0, exec_1.exec)('pip', ['install', 'msgram==1.1.0']);
+        await (0, exec_1.exec)('pip', ['install', 'msgram==1.0.2']);
         await (0, exec_1.exec)('msgram', ['init']);
+        // get msgram.json file from the input "msgramConfigPath"
+        // and overwrite the existing msgram.json file with the new one
+        const msgramConfigPath = core.getInput('msgramConfigPath', { required: true });
+        fs_1.default.copyFileSync(msgramConfigPath, './.msgram/msgram.json');
+        const data2 = fs_1.default.readFileSync('./.msgram/msgram.json', 'utf8');
+        console.log("msgram.json file data: ", data2);
         await (0, exec_1.exec)('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.', '-le', 'py']);
         await (0, exec_1.exec)('msgram', ['calculate', '-ep', '.', '-cp', '.msgram/', '-o', 'json']);
         const data = fs_1.default.readFileSync('.msgram/calc_msgram.json', 'utf8');
         console.log(data);
         const result = JSON.parse(data);
-        // print sqc values from result
-        console.log('sqc values:');
-        console.log(result[0].sqc[0].value);
         const octokit = github.getOctokit(core.getInput('githubToken', { required: true }));
         const { pull_request } = github.context.payload;
         if (!pull_request) {
