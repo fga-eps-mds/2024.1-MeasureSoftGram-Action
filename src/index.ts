@@ -67,11 +67,7 @@ async function run() {
 
     const message = createMessage(result);
 
-    await octokit.rest.issues.createComment({
-      ...github.context.repo,
-      issue_number: pull_request.number,
-      body: message
-    });
+    createOrUpdateComment(pull_request.number, message, octokit);
   } catch (error: any) {
     core.setFailed(error.message);
   }
@@ -110,6 +106,37 @@ function createMessage(result: Array<CalculatedMsgram>) {
     ###`.trim().replace(/^\s+/gm, '');
 
   return message;
+}
+
+async function createOrUpdateComment(pullRequestNumber: number, message: string, octokit: any) {
+  // Check if a comment already exists on the pull request
+  const { data: comments } = await octokit.rest.issues.listComments({
+    ...github.context.repo,
+    issue_number: pullRequestNumber
+  });
+  const actionUser = "github-actions[bot]"
+
+  const existingComment = comments.find(
+    (comment: any) => {
+      return comment.user.login === actionUser
+    }
+  );
+
+  if (existingComment) {
+    // Comment already exists, update it
+    await octokit.rest.issues.updateComment({
+      ...github.context.repo,
+      comment_id: existingComment.id,
+      body: message
+    });
+  } else {
+    // Comment doesn't exist, create a new comment
+    await octokit.rest.issues.createComment({
+      ...github.context.repo,
+      issue_number: pullRequestNumber,
+      body: message
+    });
+  }
 }
 
 run();
