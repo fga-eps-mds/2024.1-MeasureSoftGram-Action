@@ -5,11 +5,6 @@ import { createMessage, CalculatedMsgram, createFolder, generateFilePath, } from
 // github action context
 process.env.GITHUB_REPOSITORY = 'msgram/msgram-action';
 
-//basic jest test assert true
-test('basic', () => {
-    expect(true).toBe(true);
-});
-
 //  Test createFolder (doesnt check if folder was created, just if the function was called)
 jest.mock('fs', () => ({
     ...jest.requireActual('fs'), // This will ensure that all other functions of 'fs' module behave as expected.
@@ -79,4 +74,3 @@ describe('Index Tests', () => {
         expect(result).toEqual(expected);
       });
 });
-
