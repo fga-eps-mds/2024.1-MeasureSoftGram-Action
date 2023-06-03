@@ -118,7 +118,7 @@ async function createOrUpdateComment(pullRequestNumber: number, message: string,
 
   const existingComment = comments.find(
     (comment: any) => {
-      return comment.user.login === actionUser
+      return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
     }
   );
 

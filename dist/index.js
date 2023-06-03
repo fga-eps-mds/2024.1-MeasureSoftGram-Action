@@ -14406,11 +14406,9 @@ async function createOrUpdateComment(pullRequestNumber, message, octokit) {
     const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
     const actionUser = "github-actions[bot]";
     const existingComment = comments.find((comment) => {
-        return comment.user.login === actionUser;
+        return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
     });
-    console.log("existingComment: ", existingComment);
     if (existingComment) {
-        console.log("Updating comment");
         // Comment already exists, update it
         await octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github.context.repo), { comment_id: existingComment.id, body: message }));
     }
