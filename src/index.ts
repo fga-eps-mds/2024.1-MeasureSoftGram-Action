@@ -93,15 +93,15 @@ function generateFilePath(currentDate: Date, repo: string) {
 // function to create a message with the results
 function createMessage(result: Array<CalculatedMsgram>) {
   const message = `
-    ## Sonarqube Analysis Results
+    ## MeasureSoftGram Analysis Results
 
     ### SQC Values
 
-    ${result[0].sqc[0].value}
+    ${result[0].sqc[0].value.toFixed(2)}
 
     ### Characteristics Values
 
-    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value}`).join('\n')}
+    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value.toFixed(2)}`).join('\n')}
 
     ###`.trim().replace(/^\s+/gm, '');
 
