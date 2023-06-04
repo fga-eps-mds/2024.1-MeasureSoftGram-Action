@@ -13,7 +13,7 @@ interface MeasuresResponseAPI {
       key: string
       name: string
       qualifier: string
-      measures: [any]
+      measures: [unknown]
   },
   components: {
       id: string
@@ -22,7 +22,7 @@ interface MeasuresResponseAPI {
       qualifier: string
       path: string
       language: string
-      measures: [any]
+      measures: [unknown]
   },
 }
 

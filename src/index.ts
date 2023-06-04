@@ -72,8 +72,12 @@ async function run() {
       issue_number: pull_request.number,
       body: message
     });
-  } catch (error: any) {
-    core.setFailed(error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      core.setFailed(error.message);
+    } else {
+      core.setFailed('Unknown error');
+    }
   }
 }
 
