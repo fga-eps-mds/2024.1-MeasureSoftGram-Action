@@ -67,7 +67,7 @@ async function run() {
 
     const message = createMessage(result);
 
-    createOrUpdateComment(pull_request.number, message, octokit);
+    await createOrUpdateComment(pull_request.number, message, octokit);
   } catch (error: any) {
     core.setFailed(error.message);
   }
