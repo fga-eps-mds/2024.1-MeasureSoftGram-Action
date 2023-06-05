@@ -12,7 +12,7 @@ O Msgram é um robusto sistema de gerenciamento e avaliação de qualidade de so
 ![Exemplo de Saída](./assets/images/msgram-msg.png)
 
 ## Uso
-Para criar um novo fluxo de trabalho do GitHub Actions no seu repositório GitHub (por exemplo, `msgram-analysis.yml`), você deve ir para o diretório `.github/workflows`. No novo arquivo, insira o seguinte código:
+Para utilizar o MeasureSoftGram no seu repositório GitHub, crie um novo fluxo de trabalho do GitHub Actions (por exemplo, `msgram-analysis.yml`) no diretório `.github/workflows`. No novo arquivo, insira o seguinte código:
 
 ```yaml
 on:
@@ -22,41 +22,39 @@ on:
 jobs:
   msgram_analysis:
     runs-on: ubuntu-latest
-    name: Análise Msgram
+    name: Análise MeasureSoftGram
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Msgram analysis action step
+      - name: MeasureSoftGram action step
         uses: ./ # Usa uma ação no diretório raiz
         id: msgram
         with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          projectKey: "fga-eps-mds_2023-1-MeasureSoftGram-Front"
-          msgramConfigPath: "./.github/input/msgram.json"
+          host: "" # SonarQube Server URL
+          token: "" # SonarQube token
+          githubToken: ${{ secrets.GITHUB_TOKEN }} # GitHub token
+          projectKey: "" # SonarQube project key
+          msgramConfigPath: "./.github/input/msgram.json" # Configuração do MeasureSoftGram
 ```
-
-É necessário que você disponha do seu token do GitHub para executar o Msgram.
-
-Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar esta credencial de forma segura ao referenciar o token do GitHub.
 
 ## Entradas
 
 | entrada | obrigatório | descrição |
 | ------- | ----------- | --------- |
-| `githubToken` | sim | O token do GitHub Actions, como `secrets.GITHUB_TOKEN` |
-| `projectKey` | não | A chave do projeto, como "fga-eps-mds_2023-1-MeasureSoftGram-Front" |
-| `msgramConfigPath` | não | O caminho para o arquivo de configuração do Msgram, como "./.github/input/msgram.json" |
+| `host` | não | URL do servidor SonarQube |
+| `token` | não | Token do SonarQube |
+| `projectKey` | não | Chave do projeto no SonarQube. A chave padrão será 'proprietário-repositório'. |
+| `githubToken` | sim | Token do GitHub. Mais informações em [Token do GitHub](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret) |
+| `msgramConfigPath` | sim | Caminho para o arquivo de configuração do MeasureSoftGram |
 
+Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
 
-<!-- ## Configuração
-Os padrões usados para identificar referências a variáveis no seu código são totalmente personalizáveis.
-Esta ação usa o [Msgram](https://github.com/fga-eps-mds/2023-1-measuresoftgram-action) por trás dos panos, para detalhes sobre como configurar a correspondência de padrões, consulte a [configuração do Msgram](https://github.com/fga-eps-mds/2023-1-measuresoftgram-action#configuração). -->
 
 ## Roadmap
 
 Estamos sempre trabalhando para melhorar e expandir as capacidades do Msgram. Aqui estão algumas atualizações planejadas:
 
-- [ ] **Persistência das métricas:** Em futuras atualizações, planejamos permitir o armazenamento das informações geradas pela action (no Github ou no serviço web).
+- [ ] **Persistência dos resultados:** Em futuras atualizações, planejamos permitir o armazenamento dos resultados gerados pelo calculo da action na nossa aplicação web.
 - [ ] **Configurações personalizáveis via web:** Planejamos permitir que o usuário altere as configurações a partir do input da ação, puxando do serviço web.
 - [ ] **Expansão da integração do Parser:** O [Parser](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Parser) irá expandir sua integração com ferramentas de análise para além do SonarQube.
 - [ ] **Badges no README:** Planejamos adicionar uma funcionalidade que permitirá aos usuários exibir badges com métricas no README do seu repositório. Com isso, você poderá fornecer uma visão rápida da qualidade do software diretamente no seu README.
