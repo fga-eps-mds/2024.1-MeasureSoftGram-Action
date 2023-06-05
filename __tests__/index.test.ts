@@ -2,9 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import mockFs from 'mock-fs';
 import { createMessage, CalculatedMsgram, createFolder, generateFilePath, } from '../src/index';
-// github action context
-process.env.GITHUB_REPOSITORY = 'msgram/msgram-action';
 
+  
 //  Test createFolder (doesnt check if folder was created, just if the function was called)
 jest.mock('fs', () => ({
     ...jest.requireActual('fs'), // This will ensure that all other functions of 'fs' module behave as expected.
@@ -73,4 +72,9 @@ describe('Index Tests', () => {
         
         expect(result).toEqual(expected);
       });
+});
+
+// run test suite
+describe('run test suite', () => {
+
 });
