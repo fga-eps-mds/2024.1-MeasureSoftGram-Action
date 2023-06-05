@@ -3,7 +3,7 @@ description: 'Use the product MeasureSoftGram and show the results in the pull r
 inputs:
   host:
     description: "SonarQube Server URL"
-    required: true
+    required: false
   token:
     description: "Sonarqube token"
     required: false

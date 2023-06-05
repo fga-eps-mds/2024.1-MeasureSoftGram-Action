@@ -14462,7 +14462,7 @@ class Sonarqube {
                 throw new Error('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
             }
         };
-        this.host = info.host;
+        this.host = info.host || 'https://sonarcloud.io';
         this.token = info.token;
         this.project = info.project;
         const tokenb64 = Buffer.from(`${this.token}:`).toString('base64');
