@@ -14349,10 +14349,12 @@ async function run() {
         await (0, exec_1.exec)('pip', ['install', 'msgram==1.0.2']);
         await (0, exec_1.exec)('msgram', ['init']);
         // overwrite the existing msgram.json file with the new one
-        const msgramConfigPath = core.getInput('msgramConfigPath', { required: true });
-        fs_1.default.copyFileSync(msgramConfigPath, './.msgram/msgram.json');
-        const data2 = fs_1.default.readFileSync('./.msgram/msgram.json', 'utf8');
-        console.log("msgram.json file data: ", data2);
+        const msgramConfigPath = core.getInput('msgramConfigPath', { required: false });
+        if (msgramConfigPath != '') {
+            fs_1.default.copyFileSync(msgramConfigPath, './.msgram/msgram.json');
+        }
+        const msgramConfigJson = fs_1.default.readFileSync('./.msgram/msgram.json', 'utf8');
+        console.log("msgram.json file data: ", msgramConfigJson);
         await (0, exec_1.exec)('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.msgram', '-le', 'py']);
         await (0, exec_1.exec)('msgram', ['calculate', 'all', '-ep', '.msgram', '-cp', '.msgram/', '-o', 'json']);
         const data = fs_1.default.readFileSync('.msgram/calc_msgram.json', 'utf8');
@@ -14365,7 +14367,7 @@ async function run() {
             return;
         }
         const message = createMessage(result);
-        createOrUpdateComment(pull_request.number, message, octokit);
+        await createOrUpdateComment(pull_request.number, message, octokit);
     }
     catch (error) {
         if (error instanceof Error) {

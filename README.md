@@ -34,7 +34,7 @@ jobs:
           token: "" # (opcional) SonarQube token
           githubToken: ${{ secrets.GITHUB_TOKEN }} # GitHub token
           projectKey: "" # (opcional) SonarQube project key
-          msgramConfigPath: "./.github/input/msgram.json" # Configuração do MeasureSoftGram
+          msgramConfigPath: "./.github/input/msgram.json" # (opcional) Configuração do MeasureSoftGram
 ```
 
 Valores padrões para o msgram.json:
@@ -109,7 +109,7 @@ Valores padrões para o msgram.json:
 | `token` | não | Token do SonarQube. Talvez isso seja necessário caso o repositorio seja privado. |
 | `projectKey` | não | Chave do projeto no SonarQube. A chave padrão é coletada a partir das informações coletadas do repositorio no github '<proprietário do repositorio>-<nome do repositório>'. |
 | `githubToken` | sim | Token do GitHub. Mais informações em [Token do GitHub](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret) |
-| `msgramConfigPath` | sim | Caminho para o arquivo de configuração do MeasureSoftGram |
+| `msgramConfigPath` | não | Caminho para o arquivo de configuração do MeasureSoftGram. Caso não seja passado um caminho, os valores padrões serão utilizados. |
 
 Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
 
