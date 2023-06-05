@@ -14365,7 +14365,7 @@ async function run() {
             return;
         }
         const message = createMessage(result);
-        await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pull_request.number, body: message }));
+        createOrUpdateComment(pull_request.number, message, octokit);
     }
     catch (error) {
         core.setFailed(error.message);
@@ -14388,18 +14388,34 @@ function generateFilePath(currentDate, repo) {
 // function to create a message with the results
 function createMessage(result) {
     const message = `
-    ## Sonarqube Analysis Results
+    ## MeasureSoftGram Analysis Results
 
     ### SQC Values
 
-    ${result[0].sqc[0].value}
+    ${result[0].sqc[0].value.toFixed(2)}
 
     ### Characteristics Values
 
-    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value}`).join('\n')}
+    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value.toFixed(2)}`).join('\n')}
 
     ###`.trim().replace(/^\s+/gm, '');
     return message;
+}
+async function createOrUpdateComment(pullRequestNumber, message, octokit) {
+    // Check if a comment already exists on the pull request
+    const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
+    const actionUser = "github-actions[bot]";
+    const existingComment = comments.find((comment) => {
+        return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
+    });
+    if (existingComment) {
+        // Comment already exists, update it
+        await octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github.context.repo), { comment_id: existingComment.id, body: message }));
+    }
+    else {
+        // Comment doesn't exist, create a new comment
+        await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber, body: message }));
+    }
 }
 run();
 
