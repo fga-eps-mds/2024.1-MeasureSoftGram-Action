@@ -68,8 +68,12 @@ async function run() {
     const message = createMessage(result);
 
     await createOrUpdateComment(pull_request.number, message, octokit);
-  } catch (error: any) {
-    core.setFailed(error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      core.setFailed(error.message);
+    } else {
+      core.setFailed('Unknown error');
+    }
   }
 }
 

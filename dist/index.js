@@ -14368,7 +14368,12 @@ async function run() {
         createOrUpdateComment(pull_request.number, message, octokit);
     }
     catch (error) {
-        core.setFailed(error.message);
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+        else {
+            core.setFailed('Unknown error');
+        }
     }
 }
 function createFolder(folderPath) {
@@ -14525,7 +14530,6 @@ function getInfo(repo) {
     };
 }
 exports.getInfo = getInfo;
-;
 
 
 /***/ }),

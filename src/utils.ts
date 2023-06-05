@@ -18,4 +18,4 @@ export function getInfo(repo: { owner: string; repo: string }): Info {
         host: core.getInput('host'),
         token: core.getInput('token'),
     }
-};
+}
