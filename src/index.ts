@@ -36,7 +36,7 @@ async function run() {
       console.log('Data written to file.');
     });
 
-    await exec('pip', ['install', 'msgram==1.0.2'])
+    await exec('pip', ['install', 'msgram==1.1.0']);
     await exec('msgram', ['init']);
 
     // overwrite the existing msgram.json file with the new one

@@ -14346,7 +14346,7 @@ async function run() {
                 throw err;
             console.log('Data written to file.');
         });
-        await (0, exec_1.exec)('pip', ['install', 'msgram==1.0.2']);
+        await (0, exec_1.exec)('pip', ['install', 'msgram==1.1.0']);
         await (0, exec_1.exec)('msgram', ['init']);
         // overwrite the existing msgram.json file with the new one
         const msgramConfigPath = core.getInput('msgramConfigPath', { required: false });
