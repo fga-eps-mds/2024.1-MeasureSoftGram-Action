@@ -13,7 +13,7 @@ export interface MeasuresResponseAPI {
       key: string
       name: string
       qualifier: string
-      measures: [any]
+      measures: [unknown]
   },
   components: {
       id: string
@@ -22,7 +22,7 @@ export interface MeasuresResponseAPI {
       qualifier: string
       path: string
       language: string
-      measures: [any]
+      measures: [unknown]
   },
 }
 
@@ -51,7 +51,7 @@ export default class Sonarqube {
   ]
 
   constructor(info: Info) {
-    this.host = info.host
+    this.host = info.host || 'https://sonarcloud.io'
     this.token = info.token
     this.project = info.project
     const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
