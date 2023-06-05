@@ -22,22 +22,22 @@ describe('Index Tests', () => {
             characteristics: [{ key: 'mockCharacteristic', value: 20 }],
             sqc: [{ key: 'mockSqc', value: 30 }],
         };
-
+    
         const result = createMessage([mockData]);
-
-        expect(result).toContain('## Sonarqube Analysis Results');
+    
+        expect(result).toContain('## MeasureSoftGram Analysis Results');
         expect(result).toContain('### SQC Values');
-        expect(result).toContain(mockData.sqc[0].value.toString());
+        expect(result).toContain(mockData.sqc[0].value.toFixed(2));
         expect(result).toContain('### Characteristics Values');
-        expect(result).toContain(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value}`);
-
+        expect(result).toContain(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value.toFixed(2)}`);
+    
         // Check structure of the message
         const splitResult = result.split('\n');
-        expect(splitResult[0]).toBe('## Sonarqube Analysis Results');
+        expect(splitResult[0]).toBe('## MeasureSoftGram Analysis Results');
         expect(splitResult[1]).toBe('### SQC Values');
-        expect(splitResult[2]).toBe(mockData.sqc[0].value.toString());
+        expect(splitResult[2]).toBe(mockData.sqc[0].value.toFixed(2));
         expect(splitResult[3]).toBe('### Characteristics Values');
-        expect(splitResult[4]).toBe(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value}`);
+        expect(splitResult[4]).toBe(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value.toFixed(2)}`);
     });
 
     test('should call fs.mkdir with correct arguments', () => {
