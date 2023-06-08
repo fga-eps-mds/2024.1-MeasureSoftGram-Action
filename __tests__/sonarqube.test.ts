@@ -2,7 +2,6 @@ import axios from 'axios';
 import Sonarqube from '../src/sonarqube';
 import { Info } from '../src/utils';
 
-
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -60,4 +59,48 @@ describe('Sonarqube', () => {
       throw error;
     }
   });
+
+  test('getMeasures should handle axios errors', async () => {
+    const info: Info = {
+      host: 'http://localhost:9000',
+      token: '123456',
+      project: {
+        projectKey: 'projectKey',
+      },
+    };
+
+    mockedAxios.get.mockImplementationOnce(async () => {
+      return Promise.reject(new Error('API call failed'));
+    });
+
+    mockedAxios.create.mockImplementationOnce(() => mockedAxios);
+
+    const sonarqube = new Sonarqube(info);
+    const pageSize = 500;
+    await expect(sonarqube.getMeasures({ pageSize })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
+  });
+
+  test('getMeasures should handle non-200 status codes', async () => {
+    const info: Info = {
+      host: 'http://localhost:9000',
+      token: '123456',
+      project: {
+        projectKey: 'projectKey',
+      },
+    };
+  
+    mockedAxios.get.mockImplementationOnce(async () => {
+      return Promise.resolve({
+        status: 400, // Non-200 status
+        data: null, // No data
+      });
+    });
+  
+    mockedAxios.create.mockImplementationOnce(() => mockedAxios);
+  
+    const sonarqube = new Sonarqube(info);
+    const pageSize = 500;
+    await expect(sonarqube.getMeasures({ pageSize })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
+  });
+  
 });
