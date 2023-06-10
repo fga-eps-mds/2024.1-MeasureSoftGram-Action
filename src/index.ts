@@ -15,7 +15,7 @@ export interface CalculatedMsgram {
   sqc: { key: string; value: number }[];
 }
 
-async function run() {
+export async function run() {
   try {
     const { repo } = github.context
     const info:Info = getInfo(repo)
@@ -115,7 +115,7 @@ export function createMessage(result: Array<CalculatedMsgram>) {
   return message;
 }
 
-async function createOrUpdateComment(pullRequestNumber: number, message: string, octokit: any) {
+export async function createOrUpdateComment(pullRequestNumber: number, message: string, octokit: any) {
   // Check if a comment already exists on the pull request
   const { data: comments } = await octokit.rest.issues.listComments({
     ...github.context.repo,
