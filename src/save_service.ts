@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
 export class SaveService {
-    private MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080/';
-    private MSG_TOKEN = 'Token f3d5a62d7a8ef51cc823c24a21ed92418cb05c43';
-    private baseUrl = `${this.MSGRAM_SERVICE_HOST}api/v1/`;
+    private MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
+    // private MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
+    private MSG_TOKEN = 'secret';
+    private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
     constructor () { }
 
@@ -14,7 +15,7 @@ export class SaveService {
     public getMsgToken(): string {
         return this.MSG_TOKEN;
     }
-    
+
     private async makeRequest(method: 'get' | 'post', url: string, data: Object = {}): Promise<AxiosResponse | null> {
         const config: AxiosRequestConfig = {
             headers: {
