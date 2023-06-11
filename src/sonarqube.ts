@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
-interface MeasuresResponseAPI {
+export interface MeasuresResponseAPI {
   paging: {
       pageIndex: number
       pageSize: number
@@ -33,7 +33,7 @@ export default class Sonarqube {
   public project: {
     projectKey: string
   }
-  private sonarMetrics = [
+  public sonarMetrics = [
       'files',
       'functions',
       'complexity',
