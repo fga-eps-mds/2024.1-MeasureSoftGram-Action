@@ -15,3 +15,4 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           projectKey: "fga-eps-mds_2023-1-MeasureSoftGram-Front"
           msgramConfigPath: "./.github/input/msgram.json"
+          msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }}

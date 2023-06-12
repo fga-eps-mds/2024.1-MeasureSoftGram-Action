@@ -17,6 +17,9 @@ inputs:
   msgramConfigPath:
     required: false
     description: "Path to the MeasureSoftGram config file"
+  msgramServiceToken:
+    required: true
+    description: "Token to access the MeasureSoftGram service"
 runs:
   using: 'node16'
   main: 'dist/index.js'
