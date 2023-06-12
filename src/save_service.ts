@@ -25,7 +25,7 @@ export class SaveService {
         this.MSG_TOKEN = token;
     }
 
-    private async makeRequest(method: 'get' | 'post', url: string, data: Object = {}): Promise<AxiosResponse | null> {
+    private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
         const config: AxiosRequestConfig = {
             headers: {
                 Authorization: this.MSG_TOKEN,
