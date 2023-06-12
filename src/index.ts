@@ -5,6 +5,7 @@ import fs from 'fs';
 
 import { getInfo, Info } from './utils';
 import Sonarqube from './sonarqube'
+import { SaveService } from './save_service';
 
 export interface CalculatedMsgram {
   repository: { key: string; value: string }[];
@@ -21,21 +22,126 @@ export async function run() {
     const info:Info = getInfo(repo)
     const sonarqube = new Sonarqube(info)
     const currentDate = new Date();
+    // service test
+    const service = new SaveService();
 
-    const measures = await sonarqube.getMeasures({
+    const metrics = await sonarqube.getMeasures({
       pageSize: 500,
     })
 
     const file_path = generateFilePath(currentDate, repo.repo);
 
+    // ------------------------------------ NEW SERVICE STUFF ------------------------------------ 
+    // log repo info
+    console.log(`Repo: ${repo.repo}`);
+    console.log(`Owner: ${repo.owner}`);
+    
+    // set Endpoint environment variables
+    service.setMsgramServiceHost('https://msgram-service.herokuapp.com');
+    const msgramServiceToken = core.getInput('msgramServiceToken');  // get the renamed secret
+    service.setMsgToken(msgramServiceToken);
+
+    //log base url and token
+    console.log(`Base URL: ${service.getBaseUrl()}`);
+    console.log(`Token: ${service.getMsgToken()}`);
+    
+    // get organization name
+    const inputOrganization = core.getInput('organization', {required: true});
+    console.log(`Organization: ${inputOrganization}`);
+
+    // get from service the list of organizations and check if the organization exists
+    const response = await service.listOrganizations();
+    const organizations = response.results;
+
+    let orgId = null;
+    let organizationExists = false;
+
+    for (let org of organizations) {
+      if (org.name === inputOrganization) {
+        organizationExists = true;
+        orgId = org.id;
+        break;
+      }
+    }
+
+    if (!organizationExists) {
+      console.log(`Organization ${inputOrganization} does not exist.`);
+      // create organization
+      const newOrg = await service.createOrganization(inputOrganization, "default");
+      orgId = newOrg.id;
+      console.log(`Organization ${inputOrganization} created with id ${orgId}.`);
+    }
+    else {
+      console.log(`Organization ${inputOrganization} already exists with id ${orgId}.`);
+    }
+
+      // get from service the list of products and check if the project exists
+    const responseProducts = await service.listProducts(orgId);
+    const products = responseProducts.results;
+
+    let productId = null;
+    let productExists = false;
+
+    for (let product of products) {
+      if (product.name === repo.owner) {
+        productExists = true;
+        productId = product.id;
+        break;
+      }
+    }
+
+    if (!productExists) {
+      console.log(`Product ${repo.owner} does not exist.`);
+      // create product
+      const newProduct = await service.createProduct(repo.owner, "default", orgId);
+      productId = newProduct.id;
+      console.log(`Product ${repo.owner} created with id ${productId}.`);
+    }
+    else {
+      console.log(`Product ${repo.owner} already exists with id ${productId}.`);
+    }
+
+    // get from service the list of repositories and check if the repository exists
+    const responseRepositories = await service.listRepositories(orgId, productId);
+    const repositories = responseRepositories.results;
+
+    let repositoryId = null;
+    let repositoryExists = false;
+
+    for (let repository of repositories) {
+      if (repository.name === repo.repo) {
+        repositoryExists = true;
+        repositoryId = repository.id;
+        break;
+      }
+    }
+
+    if (!repositoryExists) {
+      console.log(`Repository ${repo.repo} does not exist.`);
+      // create repository
+      const newRepository = await service.createRepository(repo.repo, "default", orgId, productId);
+      repositoryId = newRepository.id;
+      console.log(`Repository ${repo.repo} created with id ${repositoryId}.`);
+    }
+    else {
+      console.log(`Repository ${repo.repo} already exists with id ${repositoryId}.`);
+    }
+
+    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
+
+
+    // create folder if it doesn't exist
     createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
 
-    fs.writeFile(file_path, JSON.stringify(measures), (err: any) => {
+    const string_metrics = JSON.stringify(metrics);
+
+    fs.writeFile(file_path, string_metrics, (err: any) => {
       if (err) throw err;
       console.log('Data written to file.');
     });
-
+    
+    // install msgram
     await exec('pip', ['install', 'msgram==1.1.0']);
     await exec('msgram', ['init']);
 
@@ -71,6 +177,22 @@ export async function run() {
     const message = createMessage(result);
 
     await createOrUpdateComment(pull_request.number, message, octokit);
+
+    // ------------------------------------ NEW SERVICE STUFF ------------------------------------
+    // get the msgram.json file and send it to the service
+    service.createMetrics(string_metrics, orgId, productId, repositoryId);
+    console.log('Metrics sent to service.');
+    //calculate stuff but with service for now
+    service.calculateMeasures(orgId, productId, repositoryId);
+    console.log('Measures calculated.');
+    service.calculateCharacteristics(orgId, productId, repositoryId);
+    console.log('Characteristics calculated.');
+    service.calculateSubCharacteristics(orgId, productId, repositoryId);
+    console.log('Subcharacteristics calculated.');
+    service.calculateSQC(orgId, productId, repositoryId);
+    console.log('SQC calculated.');
+    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
+  
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.setFailed(error.message);
@@ -146,4 +268,5 @@ export async function createOrUpdateComment(pullRequestNumber: number, message: 
   }
 }
 
+// RUN
 run();
