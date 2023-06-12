@@ -18,6 +18,7 @@ export interface CalculatedMsgram {
 
 export async function run() {
   try {
+    console.log('Starting action with Service');
     const { repo } = github.context
     const info:Info = getInfo(repo)
     const sonarqube = new Sonarqube(info)
@@ -182,17 +183,17 @@ export async function run() {
     // get the msgram.json file and send it to the service
     await service.createMetrics(string_metrics, orgId, productId, repositoryId);
     console.log('Metrics sent to service.');
-      
+
     // calculate stuff but with service for now
     await service.calculateMeasures(orgId, productId, repositoryId);
     console.log('Measures calculated.');
-      
+
     await service.calculateCharacteristics(orgId, productId, repositoryId);
     console.log('Characteristics calculated.');
-      
+
     await service.calculateSubCharacteristics(orgId, productId, repositoryId);
     console.log('Subcharacteristics calculated.');
-      
+
     await service.calculateSQC(orgId, productId, repositoryId);
     console.log('SQC calculated.');
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
