@@ -6,7 +6,7 @@ export class SaveService {
     private MSG_TOKEN = 'secret';
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
-    constructor () { }
+    // constructor () { }
 
     public getBaseUrl(): string {
         return this.baseUrl;
