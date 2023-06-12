@@ -1,10 +1,11 @@
 import { SaveService } from '../src/save_service';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+// import { get } from 'http';
 
 // const MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
-const MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
-const BASE_URL = `${MSGRAM_SERVICE_HOST}/api/v1/`;
+// const MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
+// const BASE_URL = `${MSGRAM_SERVICE_HOST}/api/v1/`;
 
 describe('SaveService', () => {
   let service: SaveService;
@@ -13,6 +14,8 @@ describe('SaveService', () => {
   beforeEach(() => {
     mockAxios = new MockAdapter(axios);
     service = new SaveService();
+    service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
+    service.setMsgToken('secret');
   });
 
   afterEach(() => {
@@ -21,7 +24,7 @@ describe('SaveService', () => {
 
   test('should return the correct base URL', () => {
     const baseUrl = service.getBaseUrl();
-    expect(baseUrl).toBe(BASE_URL);
+    expect(baseUrl).toBe(service.getBaseUrl());
   });
 
   test('should return the correct MSG_TOKEN', () => {
@@ -29,9 +32,23 @@ describe('SaveService', () => {
     expect(msgToken).toBe('secret'); // Replace 'msgToken' with the expected value
   });
 
+  test('should set the correct MSGRAM_SERVICE_HOST', () => {
+    const MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
+    const BASE_URL = `${MSGRAM_SERVICE_HOST}/api/v1/`;
+    service.setMsgramServiceHost(MSGRAM_SERVICE_HOST);
+    const baseUrl = service.getBaseUrl();
+    expect(baseUrl).toBe(BASE_URL);
+  });
+
+  test('should set the correct MSG_TOKEN', () => {
+    service.setMsgToken('secret');
+    const msgToken = service.getMsgToken();
+    expect(msgToken).toBe('secret');
+  });
+
   test('should successfully fetch organizations', async () => {
     const organizations = [{ id: 1, name: 'org1' }];
-    mockAxios.onGet(`${BASE_URL}organizations/`).reply(200, organizations);
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/`).reply(200, organizations);
 
     const response = await service.listOrganizations();
 
@@ -40,7 +57,7 @@ describe('SaveService', () => {
 
   test('should successfully fetch products', async () => {
     const products = [{ id: 1, name: 'product1' }];
-    mockAxios.onGet(`${BASE_URL}organizations/1/products/`).reply(200, products);
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/`).reply(200, products);
 
     const response = await service.listProducts(1);
 
@@ -49,7 +66,7 @@ describe('SaveService', () => {
 
   test('should successfully fetch repositories', async () => {
     const repositories = [{ id: 1, name: 'repo1' }];
-    mockAxios.onGet(`${BASE_URL}organizations/1/products/1/repositories/`).reply(200, repositories);
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/1/repositories/`).reply(200, repositories);
 
     const response = await service.listRepositories(1, 1);
 
@@ -82,7 +99,7 @@ describe('SaveService', () => {
 
   test('should successfully create an organization', async () => {
     const organization = { name: 'org2', description: 'desc' };
-    mockAxios.onPost(`${BASE_URL}organizations/`).reply(200, organization);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/`).reply(200, organization);
 
     await service.createOrganization('org2', 'desc');
 
@@ -93,7 +110,7 @@ describe('SaveService', () => {
   test('should successfully create a product', async () => {
     const product = { name: 'product', description: 'desc' };
     const orgId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/`).reply(200, product);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/`).reply(200, product);
 
     await service.createProduct('product', 'desc', orgId);
 
@@ -105,7 +122,7 @@ describe('SaveService', () => {
     const repo = { name: 'repo', description: 'desc' };
     const orgId = 1;
     const productId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/`).reply(200, repo);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/`).reply(200, repo);
 
     await service.createRepository('repo', 'desc', orgId, productId);
 
@@ -118,7 +135,7 @@ describe('SaveService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`).reply(200);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`).reply(200);
 
     await service.createMetrics(metrics, orgId, productId, repoId);
 
@@ -130,7 +147,7 @@ describe('SaveService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`).reply(200);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`).reply(200);
 
     await service.calculateMeasures(orgId, productId, repoId);
 
@@ -142,7 +159,7 @@ describe('SaveService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`).reply(200);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`).reply(200);
 
     await service.calculateCharacteristics(orgId, productId, repoId);
 
@@ -154,7 +171,7 @@ describe('SaveService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`).reply(200);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`).reply(200);
 
     await service.calculateSubCharacteristics(orgId, productId, repoId);
 
@@ -166,7 +183,7 @@ describe('SaveService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${BASE_URL}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`).reply(200);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`).reply(200);
 
     await service.calculateSQC(orgId, productId, repoId);
 
