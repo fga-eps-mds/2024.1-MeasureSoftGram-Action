@@ -56,7 +56,7 @@ export async function run() {
     let orgId = null;
     let organizationExists = false;
 
-    for (let org of organizations) {
+    for (const org of organizations) {
       if (org.name === inputOrganization) {
         organizationExists = true;
         orgId = org.id;
@@ -82,7 +82,7 @@ export async function run() {
     let productId = null;
     let productExists = false;
 
-    for (let product of products) {
+    for (const product of products) {
       if (product.name === repo.owner) {
         productExists = true;
         productId = product.id;
@@ -108,7 +108,7 @@ export async function run() {
     let repositoryId = null;
     let repositoryExists = false;
 
-    for (let repository of repositories) {
+    for (const repository of repositories) {
       if (repository.name === repo.repo) {
         repositoryExists = true;
         repositoryId = repository.id;
@@ -180,16 +180,20 @@ export async function run() {
 
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
-    service.createMetrics(string_metrics, orgId, productId, repositoryId);
+    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
     console.log('Metrics sent to service.');
-    //calculate stuff but with service for now
-    service.calculateMeasures(orgId, productId, repositoryId);
+      
+    // calculate stuff but with service for now
+    await service.calculateMeasures(orgId, productId, repositoryId);
     console.log('Measures calculated.');
-    service.calculateCharacteristics(orgId, productId, repositoryId);
+      
+    await service.calculateCharacteristics(orgId, productId, repositoryId);
     console.log('Characteristics calculated.');
-    service.calculateSubCharacteristics(orgId, productId, repositoryId);
+      
+    await service.calculateSubCharacteristics(orgId, productId, repositoryId);
     console.log('Subcharacteristics calculated.');
-    service.calculateSQC(orgId, productId, repositoryId);
+      
+    await service.calculateSQC(orgId, productId, repositoryId);
     console.log('SQC calculated.');
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
   
