@@ -38,11 +38,9 @@ export async function run() {
     console.log(`Owner: ${repo.owner}`);
     
     // set Endpoint environment variables
-    service.setMsgramServiceHost('https://msgram-service.herokuapp.com');
-    // service.setMsgramServiceHost('http://127.0.0.1:8080');
+    service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
     const msgramServiceToken = core.getInput('msgramServiceToken');  // get the renamed secret
     service.setMsgToken(msgramServiceToken);
-    // service.setMsgToken('Token f3d5a62d7a8ef51cc823c24a21ed92418cb05c43');
 
     //log base url and token
     console.log(`Base URL: ${service.getBaseUrl()}`);
@@ -143,6 +141,7 @@ export async function run() {
       console.log('Data written to file.');
     });
 
+    console.log('Calculating metrics, measures, characteristics and subcharacteristics');
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
     await service.createMetrics(string_metrics, orgId, productId, repositoryId);
