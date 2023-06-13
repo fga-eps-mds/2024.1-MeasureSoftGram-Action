@@ -14323,29 +14323,129 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createOrUpdateComment = exports.createMessage = exports.generateFilePath = exports.createFolder = exports.run = void 0;
 const core = __importStar(__nccwpck_require__(8834));
 const github = __importStar(__nccwpck_require__(2483));
 const exec_1 = __nccwpck_require__(3741);
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const utils_1 = __nccwpck_require__(2165);
 const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
+const save_service_1 = __nccwpck_require__(9729);
 async function run() {
     try {
+        console.log('Starting action with Service');
         const { repo } = github.context;
         const info = (0, utils_1.getInfo)(repo);
         const sonarqube = new sonarqube_1.default(info);
         const currentDate = new Date();
-        const measures = await sonarqube.getMeasures({
+        // service test
+        const service = new save_service_1.SaveService();
+        const metrics = await sonarqube.getMeasures({
             pageSize: 500,
         });
         const file_path = generateFilePath(currentDate, repo.repo);
+        // ------------------------------------ NEW SERVICE STUFF ------------------------------------ 
+        // log repo info
+        console.log(`Repo: ${repo.repo}`);
+        console.log(`Owner: ${repo.owner}`);
+        // set Endpoint environment variables
+        service.setMsgramServiceHost('https://msgram-service.herokuapp.com');
+        // service.setMsgramServiceHost('http://127.0.0.1:8080');
+        const msgramServiceToken = core.getInput('msgramServiceToken'); // get the renamed secret
+        service.setMsgToken(msgramServiceToken);
+        // service.setMsgToken('Token f3d5a62d7a8ef51cc823c24a21ed92418cb05c43');
+        //log base url and token
+        console.log(`Base URL: ${service.getBaseUrl()}`);
+        console.log(`Token: ${service.getMsgToken()}`);
+        // get organization name
+        const inputOrganization = repo.owner;
+        console.log(`Organization: ${inputOrganization}`);
+        // get from service the list of organizations and check if the organization exists
+        const response = await service.listOrganizations();
+        const organizations = response.results;
+        let orgId = null;
+        let organizationExists = false;
+        for (const org of organizations) {
+            if (org.name === inputOrganization) {
+                organizationExists = true;
+                orgId = org.id;
+                break;
+            }
+        }
+        if (!organizationExists) {
+            console.log(`Organization ${inputOrganization} does not exist.`);
+            // create organization
+            const newOrg = await service.createOrganization(inputOrganization, "default");
+            orgId = newOrg.id;
+            console.log(`Organization ${inputOrganization} created with id ${orgId}.`);
+        }
+        else {
+            console.log(`Organization ${inputOrganization} already exists with id ${orgId}.`);
+        }
+        // get from service the list of products and check if the project exists
+        const responseProducts = await service.listProducts(orgId);
+        const products = responseProducts.results;
+        let productId = null;
+        let productExists = false;
+        const productName = 'Test Product';
+        for (const product of products) {
+            if (product.name === productName) {
+                productExists = true;
+                productId = product.id;
+                break;
+            }
+        }
+        if (!productExists) {
+            console.log(`Product ${productName} does not exist.`);
+            // create product
+            const newProduct = await service.createProduct(productName, "default", orgId);
+            productId = newProduct.id;
+            console.log(`Product ${productName} created with id ${productId}.`);
+        }
+        else {
+            console.log(`Product ${productName} already exists with id ${productId}.`);
+        }
+        // get from service the list of repositories and check if the repository exists
+        const responseRepositories = await service.listRepositories(orgId, productId);
+        const repositories = responseRepositories.results;
+        let repositoryId = null;
+        let repositoryExists = false;
+        for (const repository of repositories) {
+            if (repository.name === repo.repo) {
+                repositoryExists = true;
+                repositoryId = repository.id;
+                break;
+            }
+        }
+        if (!repositoryExists) {
+            console.log(`Repository ${repo.repo} does not exist.`);
+            // create repository
+            const newRepository = await service.createRepository(repo.repo, "default", orgId, productId);
+            repositoryId = newRepository.id;
+            console.log(`Repository ${repo.repo} created with id ${repositoryId}.`);
+        }
+        else {
+            console.log(`Repository ${repo.repo} already exists with id ${repositoryId}.`);
+        }
+        // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
+        // create folder if it doesn't exist
         createFolder('./analytics-raw-data');
         console.log(`Writing file to ${file_path}`);
-        fs_1.default.writeFile(file_path, JSON.stringify(measures), (err) => {
+        const string_metrics = JSON.stringify(metrics);
+        fs_1.default.writeFile(file_path, string_metrics, (err) => {
             if (err)
                 throw err;
             console.log('Data written to file.');
         });
+        // ------------------------------------ NEW SERVICE STUFF ------------------------------------
+        // get the msgram.json file and send it to the service
+        await service.createMetrics(string_metrics, orgId, productId, repositoryId);
+        await service.calculateMeasures(orgId, productId, repositoryId);
+        await service.calculateCharacteristics(orgId, productId, repositoryId);
+        await service.calculateSubCharacteristics(orgId, productId, repositoryId);
+        await service.calculateSQC(orgId, productId, repositoryId);
+        // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
+        // install msgram
         await (0, exec_1.exec)('pip', ['install', 'msgram==1.1.0']);
         await (0, exec_1.exec)('msgram', ['init']);
         // overwrite the existing msgram.json file with the new one
@@ -14378,6 +14478,7 @@ async function run() {
         }
     }
 }
+exports.run = run;
 function createFolder(folderPath) {
     fs_1.default.mkdir(folderPath, { recursive: true }, (err) => {
         if (err) {
@@ -14387,11 +14488,13 @@ function createFolder(folderPath) {
         console.log('Folder created successfully.');
     });
 }
+exports.createFolder = createFolder;
 function generateFilePath(currentDate, repo) {
     const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
     const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
     return file_path;
 }
+exports.generateFilePath = generateFilePath;
 // function to create a message with the results
 function createMessage(result) {
     const message = `
@@ -14408,6 +14511,7 @@ function createMessage(result) {
     ###`.trim().replace(/^\s+/gm, '');
     return message;
 }
+exports.createMessage = createMessage;
 async function createOrUpdateComment(pullRequestNumber, message, octokit) {
     // Check if a comment already exists on the pull request
     const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
@@ -14424,7 +14528,140 @@ async function createOrUpdateComment(pullRequestNumber, message, octokit) {
         await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber, body: message }));
     }
 }
+exports.createOrUpdateComment = createOrUpdateComment;
+// RUN
 run();
+
+
+/***/ }),
+
+/***/ 9729:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SaveService = void 0;
+const axios_1 = __importDefault(__nccwpck_require__(6494));
+class SaveService {
+    constructor() {
+        this.MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
+        // private MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
+        this.MSG_TOKEN = 'secret';
+        this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
+    }
+    // constructor () { }
+    getBaseUrl() {
+        return this.baseUrl;
+    }
+    getMsgToken() {
+        return this.MSG_TOKEN;
+    }
+    setMsgramServiceHost(host) {
+        this.MSGRAM_SERVICE_HOST = host;
+        this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
+    }
+    setMsgToken(token) {
+        this.MSG_TOKEN = token;
+    }
+    async makeRequest(method, url, data = {}) {
+        const config = {
+            headers: {
+                Authorization: this.MSG_TOKEN,
+            },
+            method,
+            url,
+            data,
+        };
+        try {
+            const response = await (0, axios_1.default)(config);
+            console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response.status}`);
+            return response;
+        }
+        catch (error) {
+            if (axios_1.default.isAxiosError(error)) {
+                const axiosError = error;
+                console.error(`Failed to ${method} data to the API. ${axiosError.message}`);
+            }
+            else {
+                console.error('An unexpected error occurred.');
+            }
+        }
+        return null;
+    }
+    async listOrganizations() {
+        const url = `${this.baseUrl}organizations/`;
+        const response = await this.makeRequest('get', url);
+        return response === null || response === void 0 ? void 0 : response.data;
+    }
+    async listProducts(orgId = 2) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/`;
+        const response = await this.makeRequest('get', url);
+        return response === null || response === void 0 ? void 0 : response.data;
+    }
+    async listRepositories(orgId = 2, productId = 2) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
+        const response = await this.makeRequest('get', url);
+        return response === null || response === void 0 ? void 0 : response.data;
+    }
+    async createOrganization(org, description) {
+        const url = `${this.baseUrl}organizations/`;
+        const data = { name: org, description: description };
+        const response = await this.makeRequest('post', url, data);
+        return response === null || response === void 0 ? void 0 : response.data; // Return response data
+    }
+    async createProduct(product, description, orgId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/`;
+        const data = { name: product, description: description };
+        const response = await this.makeRequest('post', url, data);
+        return response === null || response === void 0 ? void 0 : response.data; // Return response data
+    }
+    async createRepository(repo, description, orgId, productId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
+        const data = { name: repo, description: description };
+        const response = await this.makeRequest('post', url, data);
+        return response === null || response === void 0 ? void 0 : response.data; // Return response data
+    }
+    async createMetrics(metrics, orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
+        const data = { metrics: metrics };
+        const response = await this.makeRequest('post', url, data);
+        // log url
+        // console.log("metrics post: ", url);
+        return response; // Return response data
+    }
+    async calculateMeasures(orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
+        const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }] };
+        const response = await this.makeRequest('post', url, { data: data });
+        // console.log("calculateMeasures: ", url);
+        return response; // Return response data
+    }
+    async calculateCharacteristics(orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
+        const data = { characteristics: [{ key: "reliability" }, { key: "maintainability" }] };
+        const response = await this.makeRequest('post', url, { data: data });
+        // console.log("calculateCharacteristics: ", url);
+        return response; // Return response data
+    }
+    async calculateSubCharacteristics(orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
+        const data = { subcharacteristics: [{ key: "modifiability" }, { key: "testing_status" }] };
+        const response = await this.makeRequest('post', url, { data: data });
+        // console.log("calculateSubCharacteristics: ", url);
+        return response; // Return response data
+    }
+    async calculateSQC(orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
+        const response = await this.makeRequest('post', url);
+        // console.log("calculateSQC: ", url);
+        return response; // Return response data
+    }
+}
+exports.SaveService = SaveService;
 
 
 /***/ }),
