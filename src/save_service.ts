@@ -101,26 +101,25 @@ export class SaveService {
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateMeasures: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
 
     public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
         const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" } ] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateCharacteristics: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
+    
 
     public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
         const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" } ] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateSubCharacteristics: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
+    
 
     public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
