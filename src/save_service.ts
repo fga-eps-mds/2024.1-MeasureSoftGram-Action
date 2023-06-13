@@ -93,33 +93,39 @@ export class SaveService {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
         const data = { metrics: metrics };
         const response = await this.makeRequest('post', url, data);
-        return response?.data; // Return response data
+        // log url
+        // console.log("metrics post: ", url);
+        return response; // Return response data
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
         const response = await this.makeRequest('post', url, { data: data });
-        return response?.data; // Return response data
+        // console.log("calculateMeasures: ", url);
+        return response; // Return response data
     }
 
     public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
         const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" } ] };
         const response = await this.makeRequest('post', url, { data: data });
-        return response?.data; // Return response data
+        // console.log("calculateCharacteristics: ", url);
+        return response; // Return response data
     }
 
     public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
         const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" } ] };
         const response = await this.makeRequest('post', url, { data: data });
-        return response?.data; // Return response data
+        // console.log("calculateSubCharacteristics: ", url);
+        return response; // Return response data
     }
 
     public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
         const response = await this.makeRequest('post', url);
-        return response?.data; // Return response data
+        // console.log("calculateSQC: ", url);
+        return response; // Return response data
     }
 }
