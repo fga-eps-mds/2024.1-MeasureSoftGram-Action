@@ -39,15 +39,17 @@ export async function run() {
     
     // set Endpoint environment variables
     service.setMsgramServiceHost('https://msgram-service.herokuapp.com');
+    // service.setMsgramServiceHost('http://127.0.0.1:8080');
     const msgramServiceToken = core.getInput('msgramServiceToken');  // get the renamed secret
     service.setMsgToken(msgramServiceToken);
+    // service.setMsgToken('Token f3d5a62d7a8ef51cc823c24a21ed92418cb05c43');
 
     //log base url and token
     console.log(`Base URL: ${service.getBaseUrl()}`);
     console.log(`Token: ${service.getMsgToken()}`);
     
     // get organization name
-    const inputOrganization = core.getInput('organization', {required: true});
+    const inputOrganization = repo.owner;
     console.log(`Organization: ${inputOrganization}`);
 
     // get from service the list of organizations and check if the organization exists
@@ -82,9 +84,10 @@ export async function run() {
 
     let productId = null;
     let productExists = false;
+    const productName = 'Test Product'
 
     for (const product of products) {
-      if (product.name === repo.owner) {
+      if (product.name === productName) {
         productExists = true;
         productId = product.id;
         break;
@@ -92,14 +95,14 @@ export async function run() {
     }
 
     if (!productExists) {
-      console.log(`Product ${repo.owner} does not exist.`);
+      console.log(`Product ${productName} does not exist.`);
       // create product
-      const newProduct = await service.createProduct(repo.owner, "default", orgId);
+      const newProduct = await service.createProduct(productName, "default", orgId);
       productId = newProduct.id;
-      console.log(`Product ${repo.owner} created with id ${productId}.`);
+      console.log(`Product ${productName} created with id ${productId}.`);
     }
     else {
-      console.log(`Product ${repo.owner} already exists with id ${productId}.`);
+      console.log(`Product ${productName} already exists with id ${productId}.`);
     }
 
     // get from service the list of repositories and check if the repository exists
@@ -127,21 +130,30 @@ export async function run() {
     else {
       console.log(`Repository ${repo.repo} already exists with id ${repositoryId}.`);
     }
-
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
 
     // create folder if it doesn't exist
     createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
-
     const string_metrics = JSON.stringify(metrics);
 
     fs.writeFile(file_path, string_metrics, (err: any) => {
       if (err) throw err;
       console.log('Data written to file.');
     });
-    
+
+    // ------------------------------------ NEW SERVICE STUFF ------------------------------------
+    // get the msgram.json file and send it to the service
+    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
+    await service.calculateMeasures(orgId, productId, repositoryId);
+    await service.calculateCharacteristics(orgId, productId, repositoryId);
+    await service.calculateSubCharacteristics(orgId, productId, repositoryId);
+    await service.calculateSQC(orgId, productId, repositoryId);
+    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
+
+
+
     // install msgram
     await exec('pip', ['install', 'msgram==1.1.0']);
     await exec('msgram', ['init']);
@@ -158,7 +170,6 @@ export async function run() {
 
     await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.msgram', '-le', 'py']);
     await exec('msgram', ['calculate', 'all', '-ep', '.msgram', '-cp', '.msgram/', '-o', 'json']);
-
 
     const data = fs.readFileSync('.msgram/calc_msgram.json', 'utf8');
     console.log(data);
@@ -179,24 +190,6 @@ export async function run() {
 
     await createOrUpdateComment(pull_request.number, message, octokit);
 
-    // ------------------------------------ NEW SERVICE STUFF ------------------------------------
-    // get the msgram.json file and send it to the service
-    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-    console.log('Metrics sent to service.');
-
-    // calculate stuff but with service for now
-    await service.calculateMeasures(orgId, productId, repositoryId);
-    console.log('Measures calculated.');
-
-    await service.calculateCharacteristics(orgId, productId, repositoryId);
-    console.log('Characteristics calculated.');
-
-    await service.calculateSubCharacteristics(orgId, productId, repositoryId);
-    console.log('Subcharacteristics calculated.');
-
-    await service.calculateSQC(orgId, productId, repositoryId);
-    console.log('SQC calculated.');
-    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
   
   } catch (error: unknown) {
     if (error instanceof Error) {
