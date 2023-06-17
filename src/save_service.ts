@@ -56,38 +56,41 @@ export class SaveService {
         return response?.data;
     }
 
-    public async listProducts(orgId = 2): Promise<any> {
+    public async listProducts(orgId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/`;
         const response = await this.makeRequest('get', url);
         return response?.data;
     }
 
-    public async listRepositories(orgId = 2, productId = 2): Promise<any> {
+    public async listRepositories(orgId: number, productId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
         return response?.data;
     }
 
-    public async createOrganization(org: string, description:string): Promise<any> {
-        const url = `${this.baseUrl}organizations/`;
-        const data = { name: org, description: description };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data; // Return response data
+    public async listReleases(orgId: number, productId: number): Promise<any> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;
+        console.log(url);        
+        try {
+            const response = await this.makeRequest('get', url);
+            if (response?.data) {
+                console.log(`Data received. Status code: ${response.status}`);
+                // console.log('response on func ', response.data);
+                return response.data;
+            } else {
+                console.error('No data received from the API.');
+            }
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                console.error(`Failed to get data from the API. ${axiosError.message}`);
+            } else {
+                console.error('An unexpected error occurred.');
+            }
+        }
+        return null;
     }
-
-    public async createProduct(product: string, description: string, orgId: number): Promise<any> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/`;
-        const data = { name: product, description: description };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data; // Return response data
-    }
-
-    public async createRepository(repo: string, description: string, orgId: number, productId: number): Promise<any> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
-        const data = { name: repo, description: description };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data; // Return response data
-    }
+    
 
     public async createMetrics(metrics: string, orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
