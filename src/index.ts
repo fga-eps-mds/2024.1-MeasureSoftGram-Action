@@ -128,8 +128,8 @@ export async function run() {
     }    
     // convert the current date to ISO string and remove the time
 
-    // let currentDateStr = currentDate.toISOString().split('T')[0];
-    let currentDateStr = '2023-06-06';
+    // const currentDateStr = currentDate.toISOString().split('T')[0];
+    const currentDateStr = '2023-06-06';
 
     let releaseId = null;
     let releaseExists = false;
@@ -169,12 +169,24 @@ export async function run() {
     console.log('Calculating metrics, measures, characteristics and subcharacteristics');
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
-    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-    const data_measures = await service.calculateMeasures(orgId, productId, repositoryId);
+    const response_metrics = await service.createMetrics(string_metrics, orgId, productId, repositoryId);
+    const data_metrics = response_metrics.data;
+    // log data metrics as calculated metrics with a enter
+    console.log('Calculated metrics: \n', data_metrics);
+    const response_measures = await service.calculateMeasures(orgId, productId, repositoryId);
+    const data_measures = response_measures.data;
+    // log data measures as calculated measures with a enter
+    console.log('Calculated measures: \n', data_measures);
     const response_char = await service.calculateCharacteristics(orgId, productId, repositoryId);
     const data_char = response_char.data;
-    const data_subchar = await service.calculateSubCharacteristics(orgId, productId, repositoryId);
+    // lof data char as calculated characteristics with a enter
+    console.log('Calculated characteristics: \n', data_char);
+    const response_subchar = await service.calculateSubCharacteristics(orgId, productId, repositoryId);
+    const data_subchar = response_subchar.data;
+    // log data subchar as calculated subcharacteristics with a enter
+    console.log('Calculated subcharacteristics: \n', data_subchar);
     const response_sqc = await service.calculateSQC(orgId, productId, repositoryId);
+    console.log('SQC: \n', response_sqc);
     const data_sqc = response_sqc.data;
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
