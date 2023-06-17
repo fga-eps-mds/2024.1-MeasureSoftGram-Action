@@ -13193,8 +13193,8 @@ async function run() {
             throw new Error('No releases found');
         }
         // convert the current date to ISO string and remove the time
-        // let currentDateStr = currentDate.toISOString().split('T')[0];
-        let currentDateStr = '2023-06-06';
+        // const currentDateStr = currentDate.toISOString().split('T')[0];
+        const currentDateStr = '2023-06-06';
         let releaseId = null;
         let releaseExists = false;
         for (const release of responseReleases) {
@@ -13227,10 +13227,7 @@ async function run() {
         });
         // ------------------------------------ NEW SERVICE STUFF ------------------------------------
         // get the msgram.json file and send it to the service
-        const response_metrics = await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-        const data_metrics = response_metrics.data;
-        // log data metrics as calculated metrics with a enter
-        console.log('Calculated metrics: \n', data_metrics);
+        await service.createMetrics(string_metrics, orgId, productId, repositoryId);
         const response_measures = await service.calculateMeasures(orgId, productId, repositoryId);
         const data_measures = response_measures.data;
         // log data measures as calculated measures with a enter
