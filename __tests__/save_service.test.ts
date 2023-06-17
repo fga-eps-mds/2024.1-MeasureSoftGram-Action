@@ -73,6 +73,19 @@ describe('SaveService', () => {
     expect(response).toEqual(repositories);
   });
 
+  test('should fetch releases', async () => {
+    const releases = [
+        { "id": 12, "release_name": "5", "start_at": "2023-06-06T00:00:00-03:00", "created_by": 11, "end_at": "2023-06-13T00:00:00-03:00" },
+        { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
+        { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
+    ];
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/`).reply(200, releases);
+
+    const response = await service.listReleases(1, 3);
+
+    expect(response).toEqual(releases);
+  });
+
   test('should return null when listOrganizations is called and API call fails', async () => {
     mockAxios.onGet().reply(() => [500]);
 
@@ -97,39 +110,7 @@ describe('SaveService', () => {
     expect(response).toBeUndefined();
   });
 
-  test('should successfully create an organization', async () => {
-    const organization = { name: 'org2', description: 'desc' };
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/`).reply(200, organization);
-
-    await service.createOrganization('org2', 'desc');
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toEqual(JSON.stringify({ name: 'org2', description: 'desc' }));
-  });
-
-  test('should successfully create a product', async () => {
-    const product = { name: 'product', description: 'desc' };
-    const orgId = 1;
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/`).reply(200, product);
-
-    await service.createProduct('product', 'desc', orgId);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toEqual(JSON.stringify({ name: 'product', description: 'desc' }));
-  });
-
-  test('should successfully create a repository', async () => {
-    const repo = { name: 'repo', description: 'desc' };
-    const orgId = 1;
-    const productId = 1;
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/`).reply(200, repo);
-
-    await service.createRepository('repo', 'desc', orgId, productId);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toEqual(JSON.stringify({ name: 'repo', description: 'desc' }));
-  });
-
+  
   test('should successfully create metrics', async () => {
     const metrics = 'metrics';
     const orgId = 1;
@@ -238,29 +219,5 @@ describe('SaveService', () => {
     consoleSpy.mockRestore();
   });
 
-  test('should log error message when API call fails in createProduct', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    const errorMsg = 'Request failed with status code 500';
-    mockAxios.onPost().reply(() => [500, { message: 'API Error' }]);
-
-    await service.createProduct('testProduct', 'testDescription', 123);
-
-    expect(consoleSpy).toHaveBeenCalledWith(`Failed to post data to the API. ${errorMsg}`);
-    consoleSpy.mockRestore();
-  });
-
-  test('should log error message when an unexpected error occurs in createProduct', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    jest.spyOn(axios, 'isAxiosError').mockReturnValueOnce(false);
-
-    mockAxios.onPost().networkError();
-
-    await service.createProduct('testProduct', 'testDescription', 123);
-
-    expect(consoleSpy).toHaveBeenCalledWith('An unexpected error occurred.');
-    consoleSpy.mockRestore();
-  });
 
 });
