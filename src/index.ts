@@ -169,10 +169,7 @@ export async function run() {
     console.log('Calculating metrics, measures, characteristics and subcharacteristics');
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
-    const response_metrics = await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-    const data_metrics = response_metrics.data;
-    // log data metrics as calculated metrics with a enter
-    console.log('Calculated metrics: \n', data_metrics);
+    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
     const response_measures = await service.calculateMeasures(orgId, productId, repositoryId);
     const data_measures = response_measures.data;
     // log data measures as calculated measures with a enter
