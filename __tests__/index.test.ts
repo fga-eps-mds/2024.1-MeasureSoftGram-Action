@@ -8,6 +8,7 @@ import Sonarqube from '../src/sonarqube';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
+import { SaveService } from '../src/save_service';
 
 
 //  Test createFolder (doesnt check if folder was created, just if the function was called)
@@ -139,63 +140,3 @@ describe('createOrUpdateComment function', () => {
         expect(mockOctokit.rest.issues.updateComment).not.toHaveBeenCalled();
     });
 });
-
-// // run test suite
-// describe('run function', () => {
-//     it('should call the expected functions with the correct arguments', async () => {
-//       const mockInfo = { /* mock info object */ };
-//       const mockMeasures = { /* mock measures object */ };
-//       const mockResult = [/* mock result array */];
-  
-//       // Mock the dependencies
-//       (getInfo as jest.Mock).mockReturnValue(mockInfo);
-//       (Sonarqube as jest.Mock).mockImplementation(() => ({
-//         getMeasures: jest.fn().mockResolvedValue(mockMeasures),
-//       }));
-//       (fs.writeFile as unknown as jest.Mock).mockImplementation((_path, _data, callback) => callback(null));
-//       (exec as unknown as jest.Mock).mockResolvedValue(undefined);
-//       (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(mockResult));
-//       (github.getOctokit as jest.Mock).mockReturnValue({
-//         rest: {
-//           issues: {
-//             listComments: jest.fn().mockResolvedValue({ data: [] }),
-//             createComment: jest.fn().mockResolvedValue(undefined),
-//           },
-//         },
-//       });
-  
-//       // Call the function
-//       await run();
-  
-//       // Check if the expected functions were called with the correct arguments
-//       expect(getInfo).toHaveBeenCalledWith(github.context.repo);
-//       expect(Sonarqube).toHaveBeenCalledWith(mockInfo);
-//       expect(fs.writeFile).toHaveBeenCalledWith(expect.any(String), JSON.stringify(mockMeasures), expect.any(Function));
-//       expect(exec).toHaveBeenCalledWith('pip', ['install', 'msgram==1.1.0']);
-//       expect(exec).toHaveBeenCalledWith('msgram', ['init']);
-//       expect(fs.readFileSync).toHaveBeenCalledWith('./.msgram/msgram.json', 'utf8');
-//       expect(exec).toHaveBeenCalledWith('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.msgram', '-le', 'py']);
-//       expect(exec).toHaveBeenCalledWith('msgram', ['calculate', 'all', '-ep', '.msgram', '-cp', '.msgram/', '-o', 'json']);
-//       expect(fs.readFileSync).toHaveBeenCalledWith('.msgram/calc_msgram.json', 'utf8');
-//       expect(github.getOctokit).toHaveBeenCalledWith(core.getInput('githubToken', {required: true}));
-//       expect(github.context.payload.pull_request).toBeDefined();
-//       expect(createMessage).toHaveBeenCalledWith(mockResult);
-//       expect(github.getOctokit().rest.issues.createComment).toHaveBeenCalledWith({
-//         ...github.context.repo,
-//         issue_number: github.context.payload.pull_request.number,
-//         body: createMessage(mockResult),
-//       });
-//     });
-  
-//     it('should handle errors correctly', async () => {
-//       // Mock the dependencies to throw an error
-//       (getInfo as jest.Mock).mockImplementation(() => { throw new Error('Test error') });
-  
-//       // Call the function
-//       await run();
-  
-//       // Check if core.setFailed was called with the correct argument
-//       expect(core.setFailed).toHaveBeenCalledWith('Test error');
-//     });
-//   });
-  
