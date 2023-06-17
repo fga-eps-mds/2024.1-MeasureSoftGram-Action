@@ -66,14 +66,10 @@ export async function run() {
     }
 
     if (!organizationExists) {
-      console.log(`Organization ${inputOrganization} does not exist.`);
-      // create organization
-      const newOrg = await service.createOrganization(inputOrganization, "default");
-      orgId = newOrg.id;
-      console.log(`Organization ${inputOrganization} created with id ${orgId}.`);
+      throw new Error(`Organization ${inputOrganization} does not exist.`);
     }
     else {
-      console.log(`Organization ${inputOrganization} already exists with id ${orgId}.`);
+      console.log(`Organization ${inputOrganization} exists with id ${orgId}.`);
     }
 
       // get from service the list of products and check if the project exists
@@ -82,7 +78,7 @@ export async function run() {
 
     let productId = null;
     let productExists = false;
-    const productName = 'Test Product'
+    const productName = 'MeasureSoftGram'
 
     for (const product of products) {
       if (product.name === productName) {
@@ -93,14 +89,10 @@ export async function run() {
     }
 
     if (!productExists) {
-      console.log(`Product ${productName} does not exist.`);
-      // create product
-      const newProduct = await service.createProduct(productName, "default", orgId);
-      productId = newProduct.id;
-      console.log(`Product ${productName} created with id ${productId}.`);
+      throw new Error(`Product ${productName} does not exist.`);
     }
     else {
-      console.log(`Product ${productName} already exists with id ${productId}.`);
+      console.log(`Product ${productName} exists with id ${productId}.`);
     }
 
     // get from service the list of repositories and check if the repository exists
@@ -111,7 +103,8 @@ export async function run() {
     let repositoryExists = false;
 
     for (const repository of repositories) {
-      if (repository.name === repo.repo) {
+      // if (repository.name === repo.repo) {
+      if (repository.name === '2023-1-MeasureSoftGram-Service') {
         repositoryExists = true;
         repositoryId = repository.id;
         break;
@@ -119,18 +112,50 @@ export async function run() {
     }
 
     if (!repositoryExists) {
-      console.log(`Repository ${repo.repo} does not exist.`);
-      // create repository
-      const newRepository = await service.createRepository(repo.repo, "default", orgId, productId);
-      repositoryId = newRepository.id;
-      console.log(`Repository ${repo.repo} created with id ${repositoryId}.`);
+      // throw new Error(`Repository ${repo.repo} does not exist.`);
+      throw new Error(`Repository 2023-1-MeasureSoftGram-Service does not exist.`);
     }
     else {
-      console.log(`Repository ${repo.repo} already exists with id ${repositoryId}.`);
+      // console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
+      console.log(`Repository 2023-1-MeasureSoftGram-Service exists with id ${repositoryId}.`);
     }
+
+    // check if a release is already created for the current date if not throw an error and end the action
+    const responseReleases = await service.listReleases(orgId, productId);
+    // console.log('index: ', responseReleases);
+    if (!responseReleases) {
+      throw new Error('No releases found');
+    }    
+    // convert the current date to ISO string and remove the time
+
+    // let currentDateStr = currentDate.toISOString().split('T')[0];
+    let currentDateStr = '2023-06-06';
+
+    let releaseId = null;
+    let releaseExists = false;
+
+    for (const release of responseReleases) {
+      // remove the time from the start and end dates
+      let startAt = release.start_at.split('T')[0];
+      let endAt = release.end_at.split('T')[0];
+    
+      // check if the current date is between the start and end dates
+      if (currentDateStr >= startAt && currentDateStr <= endAt) {
+        releaseExists = true;
+        releaseId = release.id;
+        break;
+      }
+    }
+
+    if (!releaseExists) {
+      throw new Error(`No release is happening on ${currentDateStr}.`);
+    } else {
+      console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
+    }
+
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
-
+    console.log('Creating folder for raw data');
     // create folder if it doesn't exist
     createFolder('./analytics-raw-data');
     console.log(`Writing file to ${file_path}`);
@@ -145,35 +170,38 @@ export async function run() {
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
     await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-    await service.calculateMeasures(orgId, productId, repositoryId);
-    await service.calculateCharacteristics(orgId, productId, repositoryId);
-    await service.calculateSubCharacteristics(orgId, productId, repositoryId);
-    await service.calculateSQC(orgId, productId, repositoryId);
+    const data_measures = await service.calculateMeasures(orgId, productId, repositoryId);
+    const response_char = await service.calculateCharacteristics(orgId, productId, repositoryId);
+    const data_char = response_char.data;
+    const data_subchar = await service.calculateSubCharacteristics(orgId, productId, repositoryId);
+    const response_sqc = await service.calculateSQC(orgId, productId, repositoryId);
+    const data_sqc = response_sqc.data;
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
+    // Parse the characteristics response
+    let characteristics = data_char.map((char: { key: any; latest: { value: any; }; }) => {
+      return {
+        key: char.key,
+        value: char.latest.value
+      }
+    });
 
+    // Parse the SQC response
+    let sqc = [{
+      key: 'sqc',
+      value: data_sqc.value
+    }];
 
-    // install msgram
-    await exec('pip', ['install', 'msgram==1.1.0']);
-    await exec('msgram', ['init']);
-
-    // overwrite the existing msgram.json file with the new one
-    const msgramConfigPath = core.getInput('msgramConfigPath', {required: false});
-    
-    if (msgramConfigPath != '') {
-      fs.copyFileSync(msgramConfigPath, './.msgram/msgram.json');
-    }
-
-    const msgramConfigJson = fs.readFileSync('./.msgram/msgram.json', 'utf8');
-    console.log("msgram.json file data: ", msgramConfigJson);
-
-    await exec('msgram', ['extract', '-o', 'sonarqube', '-dp', './analytics-raw-data/', '-ep', '.msgram', '-le', 'py']);
-    await exec('msgram', ['calculate', 'all', '-ep', '.msgram', '-cp', '.msgram/', '-o', 'json']);
-
-    const data = fs.readFileSync('.msgram/calc_msgram.json', 'utf8');
-    console.log(data);
-
-    const result: Array<CalculatedMsgram> = JSON.parse(data);
+    const result: Array<CalculatedMsgram> = [{
+      repository: [],
+      version: [],
+      measures: [],
+      subcharacteristics: [],
+      characteristics: characteristics,
+      sqc: sqc
+    }];
+  
+    // const result: Array<CalculatedMsgram> = JSON.parse(data);
 
     const octokit = github.getOctokit(
       core.getInput('githubToken', {required: true})
