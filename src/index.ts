@@ -136,8 +136,8 @@ export async function run() {
 
     for (const release of responseReleases) {
       // remove the time from the start and end dates
-      let startAt = release.start_at.split('T')[0];
-      let endAt = release.end_at.split('T')[0];
+      const startAt = release.start_at.split('T')[0];
+      const endAt = release.end_at.split('T')[0];
     
       // check if the current date is between the start and end dates
       if (currentDateStr >= startAt && currentDateStr <= endAt) {
@@ -179,7 +179,7 @@ export async function run() {
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
     // Parse the characteristics response
-    let characteristics = data_char.map((char: { key: any; latest: { value: any; }; }) => {
+    const characteristics = data_char.map((char: { key: any; latest: { value: any; }; }) => {
       return {
         key: char.key,
         value: char.latest.value
@@ -187,7 +187,7 @@ export async function run() {
     });
 
     // Parse the SQC response
-    let sqc = [{
+    const sqc = [{
       key: 'sqc',
       value: data_sqc.value
     }];
