@@ -14,9 +14,9 @@ inputs:
   githubToken:
     description: "Github token. https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret"
     required: true
-  msgramConfigPath:
-    required: false
-    description: "Path to the MeasureSoftGram config file"
+  productName:
+    description: "Product name"
+    required: true
   msgramServiceToken:
     required: true
     description: "Token to access the MeasureSoftGram service"
