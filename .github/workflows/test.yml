@@ -25,6 +25,12 @@ jobs:
       - name: Rodar testes
         run: yarn run jest --coverage --updateSnapshot --ci --silent
 
+      - name: Scanner do SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v1.8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Envia cobertura para o Codecov
         uses: codecov/codecov-action@v3
         with:
