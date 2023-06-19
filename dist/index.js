@@ -13185,7 +13185,7 @@ exports.RequestService = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(6494));
 class RequestService {
     constructor() {
-        this.MSGRAM_SERVICE_HOST = process.env.BASE_URL || 'http://127.0.0.1:8080';
+        this.MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
         this.MSG_TOKEN = "'secret';";
         this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
     }
@@ -13194,10 +13194,6 @@ class RequestService {
     }
     getMsgToken() {
         return this.MSG_TOKEN;
-    }
-    setMsgramServiceHost(host) {
-        this.MSGRAM_SERVICE_HOST = host;
-        this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
     }
     setMsgToken(token) {
         this.MSG_TOKEN = token;

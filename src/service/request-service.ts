@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
 export class RequestService {
-    private MSGRAM_SERVICE_HOST = process.env.BASE_URL || 'http://127.0.0.1:8080';
+    private MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
     private MSG_TOKEN = "'secret';"
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
@@ -11,11 +11,6 @@ export class RequestService {
 
     public getMsgToken(): string {
         return this.MSG_TOKEN;
-    }
-
-    public setMsgramServiceHost(host: string): void {
-        this.MSGRAM_SERVICE_HOST = host;
-        this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
     }
     
     public setMsgToken(token: string): void {

@@ -35,7 +35,6 @@ jest.mock('@actions/github', () => ({
 
 jest.mock('../src/service/request-service', () => ({
     RequestService: jest.fn().mockImplementation(() => ({
-        setMsgramServiceHost: jest.fn(),
         setMsgToken: jest.fn(),
         getBaseUrl: jest.fn(),
         getMsgToken: jest.fn(),

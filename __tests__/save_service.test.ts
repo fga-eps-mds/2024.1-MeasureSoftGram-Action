@@ -10,7 +10,6 @@ describe('RequestService', () => {
   beforeEach(() => {
     mockAxios = new MockAdapter(axios);
     service = new RequestService();
-    service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
     service.setMsgToken('secret');
   });
 
@@ -26,14 +25,6 @@ describe('RequestService', () => {
   test('should return the correct MSG_TOKEN', () => {
     const msgToken = service.getMsgToken();
     expect(msgToken).toBe('secret'); // Replace 'msgToken' with the expected value
-  });
-
-  test('should set the correct MSGRAM_SERVICE_HOST', () => {
-    const MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
-    const BASE_URL = `${MSGRAM_SERVICE_HOST}/api/v1/`;
-    service.setMsgramServiceHost(MSGRAM_SERVICE_HOST);
-    const baseUrl = service.getBaseUrl();
-    expect(baseUrl).toBe(BASE_URL);
   });
 
   test('should set the correct MSG_TOKEN', () => {
