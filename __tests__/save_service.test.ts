@@ -1,15 +1,15 @@
-import { SaveService } from '../src/save_service';
+import { RequestService } from '../src/service/request-service';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
 
-describe('SaveService', () => {
-  let service: SaveService;
+describe('RequestService', () => {
+  let service: RequestService;
   let mockAxios: MockAdapter;
 
   beforeEach(() => {
     mockAxios = new MockAdapter(axios);
-    service = new SaveService();
+    service = new RequestService();
     service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
     service.setMsgToken('secret');
   });
@@ -71,9 +71,9 @@ describe('SaveService', () => {
 
   test('should fetch releases', async () => {
     const releases = [
-        { "id": 12, "release_name": "5", "start_at": "2023-06-06T00:00:00-03:00", "created_by": 11, "end_at": "2023-06-13T00:00:00-03:00" },
-        { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
-        { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
+      { "id": 12, "release_name": "5", "start_at": "2023-06-06T00:00:00-03:00", "created_by": 11, "end_at": "2023-06-13T00:00:00-03:00" },
+      { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
+      { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
     ];
     mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/`).reply(200, releases);
 
@@ -130,38 +130,38 @@ describe('SaveService', () => {
   test('should handle network error in listReleases', async () => {
     const orgId = 1;
     const productId = 1;
-  
+
     const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
     mockAxios.onGet(expectedUrl).networkError();
-  
+
     const result = await service.listReleases(orgId, productId);
-  
+
     expect(result).toBeNull();
   });
-  
+
   test('should handle no data received from the API in listReleases', async () => {
     const orgId = 1;
     const productId = 1;
-  
+
     const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
     mockAxios.onGet(expectedUrl).reply(200, null); // Returns a successful status but no data
-  
+
     const result = await service.listReleases(orgId, productId);
-  
+
     expect(result).toBeNull();
   });
-  
+
   // Here, we are checking if the error path of the private `makeRequest` function is called when `listOrganizations` is called
   test('should handle network error in listOrganizations', async () => {
     const expectedUrl = `${service.getBaseUrl()}organizations/`;
     mockAxios.onGet(expectedUrl).networkError();
-  
+
     const result = await service.listOrganizations();
-  
+
     expect(result).toBeUndefined();
   });
-  
-  
+
+
 
   test('should successfully create metrics', async () => {
     const metrics = '{"metric1":"value1", "metric2":"value2"}'; // a JSON string
@@ -229,7 +229,7 @@ describe('SaveService', () => {
   });
 
   test('should log error message when API call fails in calculateMeasures', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     const errorMsg = 'Request failed with status code 500';
     mockAxios.onPost().reply(() => [500, { message: 'API Error' }]);
@@ -241,7 +241,7 @@ describe('SaveService', () => {
   });
 
   test('should log error message when API call fails in calculateCharacteristics', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     const errorMsg = 'Request failed with status code 500';
     mockAxios.onPost().reply(() => [500, { message: 'API Error' }]);
@@ -253,7 +253,7 @@ describe('SaveService', () => {
   });
 
   test('should log error message when API call fails in calculateSubCharacteristics', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     const errorMsg = 'Request failed with status code 500';
     mockAxios.onPost().reply(() => [500, { message: 'API Error' }]);
@@ -265,7 +265,7 @@ describe('SaveService', () => {
   });
 
   test('should log error message when API call fails in calculateSQC', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     const errorMsg = 'Request failed with status code 500';
     mockAxios.onPost().reply(() => [500, { message: 'API Error' }]);
@@ -275,6 +275,4 @@ describe('SaveService', () => {
     expect(consoleSpy).toHaveBeenCalledWith(`Failed to post data to the API. ${errorMsg}`);
     consoleSpy.mockRestore();
   });
-
-
 });

@@ -1,11 +1,10 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { exec } from '@actions/exec';
-import fs from 'fs';
 
 import { getInfo, Info } from './utils';
 import Sonarqube from './sonarqube'
-import { SaveService } from './save_service';
+import { RequestService } from './service/request-service';
+import Service from './service/service';
 
 export interface CalculatedMsgram {
   repository: { key: string; value: string }[];
@@ -19,182 +18,20 @@ export interface CalculatedMsgram {
 export async function run() {
   try {
     console.log('Starting action with Service');
-    const { repo } = github.context
-    const info:Info = getInfo(repo)
-    const sonarqube = new Sonarqube(info)
-    const currentDate = new Date();
-    // service test
-    const service = new SaveService();
+    const { repo } = github.context;
+    const info:Info = getInfo(repo);
+    const sonarqube = new Sonarqube(info);
+    const productName = core.getInput('productName');
+    const requestService = new RequestService();
+    requestService.setMsgToken(core.getInput('msgramServiceToken'));
 
     const metrics = await sonarqube.getMeasures({
       pageSize: 500,
     })
 
+    const service = new Service(repo.repo, repo.owner, requestService, productName, metrics)
+    const result = await service.run()
 
-    // ------------------------------------ NEW SERVICE STUFF ------------------------------------ 
-    // log repo info
-    console.log(`Repo: ${repo.repo}`);
-    console.log(`Owner: ${repo.owner}`);
-    
-    // set Endpoint environment variables
-    service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
-    const msgramServiceToken = core.getInput('msgramServiceToken');  // get the renamed secret
-    service.setMsgToken(msgramServiceToken);
-
-    //log base url and token
-    console.log(`Base URL: ${service.getBaseUrl()}`);
-    console.log(`Token: ${service.getMsgToken()}`);
-    
-    // get organization name
-    const inputOrganization = repo.owner;
-    console.log(`Organization: ${inputOrganization}`);
-
-    // get from service the list of organizations and check if the organization exists
-    const response = await service.listOrganizations();
-    const organizations = response.results;
-
-    let orgId = null;
-    let organizationExists = false;
-
-    for (const org of organizations) {
-      if (org.name === inputOrganization) {
-        organizationExists = true;
-        orgId = org.id;
-        break;
-      }
-    }
-
-    if (!organizationExists) {
-      throw new Error(`Organization ${inputOrganization} does not exist.`);
-    }
-    else {
-      console.log(`Organization ${inputOrganization} exists with id ${orgId}.`);
-    }
-
-      // get from service the list of products and check if the project exists
-    const responseProducts = await service.listProducts(orgId);
-    const products = responseProducts.results;
-
-    let productId = null;
-    let productExists = false;
-    // const productName = 'MeasureSoftGram'
-    const productName = core.getInput('productName');
-
-    for (const product of products) {
-      if (product.name === productName) {
-        productExists = true;
-        productId = product.id;
-        break;
-      }
-    }
-
-    if (!productExists) {
-      throw new Error(`Product ${productName} does not exist.`);
-    }
-    else {
-      console.log(`Product ${productName} exists with id ${productId}.`);
-    }
-
-    // get from service the list of repositories and check if the repository exists
-    const responseRepositories = await service.listRepositories(orgId, productId);
-    const repositories = responseRepositories.results;
-
-    let repositoryId = null;
-    let repositoryExists = false;
-
-    for (const repository of repositories) {
-      if (repository.name === repo.repo) {
-        repositoryExists = true;
-        repositoryId = repository.id;
-        break;
-      }
-    }
-
-    if (!repositoryExists) {
-      throw new Error(`Repository ${repo.repo} does not exist.`);
-    }
-    else {
-      console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
-    }
-
-    // check if a release is already created for the current date if not throw an error and end the action
-    const responseReleases = await service.listReleases(orgId, productId);
-    if (!responseReleases) {
-      throw new Error('No releases found');
-    }    
-    // convert the current date to ISO string and remove the time
-    const currentDateStr = currentDate.toISOString().split('T')[0];
-
-    let releaseId = null;
-    let releaseExists = false;
-
-    for (const release of responseReleases) {
-      // remove the time from the start and end dates
-      const startAt = release.start_at.split('T')[0];
-      const endAt = release.end_at.split('T')[0];
-    
-      // check if the current date is between the start and end dates
-      if (currentDateStr >= startAt && currentDateStr <= endAt) {
-        releaseExists = true;
-        releaseId = release.id;
-        break;
-      }
-    }
-
-    if (!releaseExists) {
-      throw new Error(`No release is happening on ${currentDateStr}.`);
-    } else {
-      console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
-    }
-
-    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
-
-      
-    const string_metrics = JSON.stringify(metrics);
-    console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-    // ------------------------------------ NEW SERVICE STUFF ------------------------------------
-    // get the msgram.json file and send it to the service
-    await service.createMetrics(string_metrics, orgId, productId, repositoryId);
-    const response_measures = await service.calculateMeasures(orgId, productId, repositoryId);
-    const data_measures = response_measures.data;
-    // log data measures as calculated measures with a enter
-    console.log('Calculated measures: \n', data_measures);
-    const response_char = await service.calculateCharacteristics(orgId, productId, repositoryId);
-    const data_char = response_char.data;
-    // lof data char as calculated characteristics with a enter
-    console.log('Calculated characteristics: \n', data_char);
-    const response_subchar = await service.calculateSubCharacteristics(orgId, productId, repositoryId);
-    const data_subchar = response_subchar.data;
-    // log data subchar as calculated subcharacteristics with a enter
-    console.log('Calculated subcharacteristics: \n', data_subchar);
-    const response_sqc = await service.calculateSQC(orgId, productId, repositoryId);
-    console.log('SQC: \n', response_sqc);
-    const data_sqc = response_sqc.data;
-    // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
-
-    // Parse the characteristics response
-    const characteristics = data_char.map((char: { key: any; latest: { value: any; }; }) => {
-      return {
-        key: char.key,
-        value: char.latest.value
-      }
-    });
-
-    // Parse the SQC response
-    const sqc = [{
-      key: 'sqc',
-      value: data_sqc.value
-    }];
-
-    const result: Array<CalculatedMsgram> = [{
-      repository: [],
-      version: [],
-      measures: [],
-      subcharacteristics: [],
-      characteristics: characteristics,
-      sqc: sqc
-    }];
-  
     // const result: Array<CalculatedMsgram> = JSON.parse(data);
 
     const octokit = github.getOctokit(
@@ -271,5 +108,4 @@ export async function createOrUpdateComment(pullRequestNumber: number, message: 
   }
 }
 
-// RUN
 run();

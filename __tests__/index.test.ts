@@ -8,7 +8,7 @@ import Sonarqube from '../src/sonarqube';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
-import { SaveService } from '../src/save_service';
+import { RequestService } from '../src/service/request-service';
 import { Octokit } from '@octokit/rest';
 import { getOctokit } from '@actions/github';
 
@@ -33,8 +33,8 @@ jest.mock('@actions/github', () => ({
     },
 }));
 
-jest.mock('../src/save_service', () => ({
-    SaveService: jest.fn().mockImplementation(() => ({
+jest.mock('../src/service/request-service', () => ({
+    RequestService: jest.fn().mockImplementation(() => ({
         setMsgramServiceHost: jest.fn(),
         setMsgToken: jest.fn(),
         getBaseUrl: jest.fn(),
@@ -66,7 +66,7 @@ jest.mock('../src/save_service', () => ({
 //     // ...
 
 //     test('should run without errors', async () => {
-//         const mockSaveService = {
+//         const mockRequestService = {
 //             setMsgramServiceHost: jest.fn(),
 //             setMsgToken: jest.fn(),
 //             getBaseUrl: jest.fn(),
@@ -110,7 +110,7 @@ jest.mock('../src/save_service', () => ({
 //             }),
 //         };
 
-//         (SaveService as jest.MockedClass<typeof SaveService>).mockImplementationOnce(() => mockSaveService);
+//         (RequestService as jest.MockedClass<typeof RequestService>).mockImplementationOnce(() => mockRequestService);
 
 //         // ...
 
