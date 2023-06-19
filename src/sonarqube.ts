@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
-export interface MeasuresResponseAPI {
+export interface MetricsResponseAPI {
   paging: {
       pageIndex: number
       pageSize: number
@@ -72,9 +72,9 @@ export default class Sonarqube {
     pageSize
   }: {
       pageSize: number
-    }): Promise<MeasuresResponseAPI> => {
+    }): Promise<MetricsResponseAPI> => {
     try {
-      const response = await this.http.get<MeasuresResponseAPI>(
+      const response = await this.http.get<MetricsResponseAPI>(
         `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
       )
 
