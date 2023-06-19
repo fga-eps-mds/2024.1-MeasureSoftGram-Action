@@ -13092,13 +13092,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createOrUpdateComment = exports.createMessage = exports.generateFilePath = exports.createFolder = exports.run = void 0;
+exports.createOrUpdateComment = exports.createMessage = exports.run = void 0;
 const core = __importStar(__nccwpck_require__(4946));
 const github = __importStar(__nccwpck_require__(2237));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
-const utils_1 = __nccwpck_require__(2165);
-const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
-const save_service_1 = __nccwpck_require__(9729);
+const utils_1 = __nccwpck_require__(3246);
+const sonarqube_1 = __importDefault(__nccwpck_require__(8365));
+const save_service_1 = __nccwpck_require__(9094);
 async function run() {
     try {
         console.log('Starting action with Service');
@@ -13111,7 +13110,6 @@ async function run() {
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
         });
-        const file_path = generateFilePath(currentDate, repo.repo);
         // ------------------------------------ NEW SERVICE STUFF ------------------------------------ 
         // log repo info
         console.log(`Repo: ${repo.repo}`);
@@ -13151,7 +13149,8 @@ async function run() {
         const products = responseProducts.results;
         let productId = null;
         let productExists = false;
-        const productName = 'MeasureSoftGram';
+        // const productName = 'MeasureSoftGram'
+        const productName = core.getInput('productName');
         for (const product of products) {
             if (product.name === productName) {
                 productExists = true;
@@ -13171,30 +13170,25 @@ async function run() {
         let repositoryId = null;
         let repositoryExists = false;
         for (const repository of repositories) {
-            // if (repository.name === repo.repo) {
-            if (repository.name === '2023-1-MeasureSoftGram-Service') {
+            if (repository.name === repo.repo) {
                 repositoryExists = true;
                 repositoryId = repository.id;
                 break;
             }
         }
         if (!repositoryExists) {
-            // throw new Error(`Repository ${repo.repo} does not exist.`);
-            throw new Error(`Repository 2023-1-MeasureSoftGram-Service does not exist.`);
+            throw new Error(`Repository ${repo.repo} does not exist.`);
         }
         else {
-            // console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
-            console.log(`Repository 2023-1-MeasureSoftGram-Service exists with id ${repositoryId}.`);
+            console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
         }
         // check if a release is already created for the current date if not throw an error and end the action
         const responseReleases = await service.listReleases(orgId, productId);
-        // console.log('index: ', responseReleases);
         if (!responseReleases) {
             throw new Error('No releases found');
         }
         // convert the current date to ISO string and remove the time
-        // const currentDateStr = currentDate.toISOString().split('T')[0];
-        const currentDateStr = '2023-06-06';
+        const currentDateStr = currentDate.toISOString().split('T')[0];
         let releaseId = null;
         let releaseExists = false;
         for (const release of responseReleases) {
@@ -13215,16 +13209,8 @@ async function run() {
             console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
         }
         // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
-        console.log('Creating folder for raw data');
-        // create folder if it doesn't exist
-        createFolder('./analytics-raw-data');
-        console.log(`Writing file to ${file_path}`);
         const string_metrics = JSON.stringify(metrics);
-        fs_1.default.writeFile(file_path, string_metrics, (err) => {
-            if (err)
-                throw err;
-            console.log('Data written to file.');
-        });
+        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
         // ------------------------------------ NEW SERVICE STUFF ------------------------------------
         // get the msgram.json file and send it to the service
         await service.createMetrics(string_metrics, orgId, productId, repositoryId);
@@ -13284,22 +13270,6 @@ async function run() {
     }
 }
 exports.run = run;
-function createFolder(folderPath) {
-    fs_1.default.mkdir(folderPath, { recursive: true }, (err) => {
-        if (err) {
-            console.error(`Error creating folder: ${err}`);
-            return;
-        }
-        console.log('Folder created successfully.');
-    });
-}
-exports.createFolder = createFolder;
-function generateFilePath(currentDate, repo) {
-    const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
-    const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
-    return file_path;
-}
-exports.generateFilePath = generateFilePath;
 // function to create a message with the results
 function createMessage(result) {
     const message = `
@@ -13375,7 +13345,8 @@ class SaveService {
     async makeRequest(method, url, data = {}) {
         const config = {
             headers: {
-                Authorization: this.MSG_TOKEN,
+                'Content-Type': 'application/json',
+                Authorization: this.MSG_TOKEN
             },
             method,
             url,
@@ -13439,8 +13410,9 @@ class SaveService {
     }
     async createMetrics(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
-        const data = { metrics: metrics };
-        const response = await this.makeRequest('post', url, data);
+        // const data = { metrics: metrics };
+        const jsonData = JSON.parse(metrics);
+        const response = await this.makeRequest('post', url, jsonData);
         // log url
         // console.log("metrics post: ", url);
         return response; // Return response data
