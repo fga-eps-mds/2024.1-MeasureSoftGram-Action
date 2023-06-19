@@ -13060,6 +13060,74 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6617:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const github = __importStar(__nccwpck_require__(2483));
+class GithubComment {
+    createMessage(result) {
+        const message = `
+      ## MeasureSoftGram Analysis Results
+  
+      ### SQC Values
+  
+      ${result[0].sqc[0].value.toFixed(2)}
+  
+      ### Characteristics Values
+  
+      ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value.toFixed(2)}`).join('\n')}
+  
+      ###`.trim().replace(/^\s+/gm, '');
+        return message;
+    }
+    async createOrUpdateComment(pullRequestNumber, message, octokit) {
+        // Check if a comment already exists on the pull request
+        const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
+        const actionUser = "github-actions[bot]";
+        const existingComment = comments.find((comment) => {
+            return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
+        });
+        if (existingComment) {
+            // Comment already exists, update it
+            await octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github.context.repo), { comment_id: existingComment.id, body: message }));
+        }
+        else {
+            // Comment doesn't exist, create a new comment
+            await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber, body: message }));
+        }
+    }
+}
+exports["default"] = GithubComment;
+
+
+/***/ }),
+
 /***/ 6486:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -13092,13 +13160,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createOrUpdateComment = exports.createMessage = exports.run = void 0;
+exports.run = void 0;
 const core = __importStar(__nccwpck_require__(8834));
 const github = __importStar(__nccwpck_require__(2483));
 const utils_1 = __nccwpck_require__(2165);
 const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
 const request_service_1 = __nccwpck_require__(1874);
 const service_1 = __importDefault(__nccwpck_require__(841));
+const github_comment_1 = __importDefault(__nccwpck_require__(6617));
 async function run() {
     try {
         console.log('Starting action with Service');
@@ -13107,21 +13176,23 @@ async function run() {
         const sonarqube = new sonarqube_1.default(info);
         const productName = core.getInput('productName');
         const requestService = new request_service_1.RequestService();
+        const githubToken = core.getInput('githubToken', { required: true });
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
         });
         const service = new service_1.default(repo.repo, repo.owner, requestService, productName, metrics);
         const result = await service.run();
-        // const result: Array<CalculatedMsgram> = JSON.parse(data);
-        const octokit = github.getOctokit(core.getInput('githubToken', { required: true }));
+        const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         if (!pull_request) {
             console.log('No pull request found.');
             return;
         }
-        const message = createMessage(result);
-        await createOrUpdateComment(pull_request.number, message, octokit);
+        console.log('Creating comment');
+        const githubComment = new github_comment_1.default();
+        const message = githubComment.createMessage(result);
+        await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -13133,40 +13204,6 @@ async function run() {
     }
 }
 exports.run = run;
-// function to create a message with the results
-function createMessage(result) {
-    const message = `
-    ## MeasureSoftGram Analysis Results
-
-    ### SQC Values
-
-    ${result[0].sqc[0].value.toFixed(2)}
-
-    ### Characteristics Values
-
-    ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value.toFixed(2)}`).join('\n')}
-
-    ###`.trim().replace(/^\s+/gm, '');
-    return message;
-}
-exports.createMessage = createMessage;
-async function createOrUpdateComment(pullRequestNumber, message, octokit) {
-    // Check if a comment already exists on the pull request
-    const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
-    const actionUser = "github-actions[bot]";
-    const existingComment = comments.find((comment) => {
-        return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
-    });
-    if (existingComment) {
-        // Comment already exists, update it
-        await octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github.context.repo), { comment_id: existingComment.id, body: message }));
-    }
-    else {
-        // Comment doesn't exist, create a new comment
-        await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber, body: message }));
-    }
-}
-exports.createOrUpdateComment = createOrUpdateComment;
 run();
 
 
@@ -13208,10 +13245,10 @@ class RequestService {
             url,
             data,
         };
+        let response = null;
         try {
-            const response = await (0, axios_1.default)(config);
-            console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response.status}`);
-            return response;
+            response = await (0, axios_1.default)(config);
+            console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
         }
         catch (error) {
             if (axios_1.default.isAxiosError(error)) {
@@ -13221,6 +13258,15 @@ class RequestService {
             else {
                 console.error('An unexpected error occurred.');
             }
+        }
+        if (method == "post")
+            return response;
+        if (response === null || response === void 0 ? void 0 : response.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response.data;
+        }
+        else {
+            console.error('No data received from the API.');
         }
         return null;
     }
@@ -13241,27 +13287,7 @@ class RequestService {
     }
     async listReleases(orgId, productId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;
-        console.log("url: ", url);
-        try {
-            const response = await this.makeRequest('get', url);
-            if (response === null || response === void 0 ? void 0 : response.data) {
-                console.log(`Data received. Status code: ${response.status}`);
-                return response.data;
-            }
-            else {
-                console.error('No data received from the API.');
-            }
-        }
-        catch (error) {
-            if (axios_1.default.isAxiosError(error)) {
-                const axiosError = error;
-                console.error(`Failed to get data from the API. ${axiosError.message}`);
-            }
-            else {
-                console.error('An unexpected error occurred.');
-            }
-        }
-        return null;
+        return await this.makeRequest('get', url);
     }
     async createMetrics(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;

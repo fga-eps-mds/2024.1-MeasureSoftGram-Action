@@ -28,10 +28,11 @@ export class RequestService {
             data,
         };
 
+        let response: AxiosResponse | null = null;
+
         try {
-            const response = await axios(config);
-            console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response.status}`);
-            return response;
+            response = await axios(config);
+            console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response?.status}`);
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
@@ -40,47 +41,38 @@ export class RequestService {
                 console.error('An unexpected error occurred.');
             }
         }
+
+        if (method == "post") return response;
+
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response.data;
+        } else {
+            console.error('No data received from the API.');
+        }
         return null;
     }
 
     public async listOrganizations(): Promise<any> {
         const url = `${this.baseUrl}organizations/`;
         const response = await this.makeRequest('get', url);
-        return response?.data;
+        return response;
     }
 
     public async listProducts(orgId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/`;
         const response = await this.makeRequest('get', url);
-        return response?.data;
+        return response;
     }
 
     public async listRepositories(orgId: number, productId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
-        const response = await this.makeRequest('get', url);
-        return response?.data;
+        return await this.makeRequest('get', url);
     }
 
     public async listReleases(orgId: number, productId: number): Promise<any> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;
-        console.log("url: ", url);       
-        try {
-            const response = await this.makeRequest('get', url);
-            if (response?.data) {
-                console.log(`Data received. Status code: ${response.status}`);
-                return response.data;
-            } else {
-                console.error('No data received from the API.');
-            }
-        } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                const axiosError = error as AxiosError;
-                console.error(`Failed to get data from the API. ${axiosError.message}`);
-            } else {
-                console.error('An unexpected error occurred.');
-            }
-        }
-        return null;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;    
+        return await this.makeRequest('get', url);
     }
     
 

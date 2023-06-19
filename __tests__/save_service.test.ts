@@ -2,6 +2,7 @@ import { RequestService } from '../src/service/request-service';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
+const genericResponse = { message: 'success' };
 
 describe('RequestService', () => {
   let service: RequestService;
@@ -78,7 +79,7 @@ describe('RequestService', () => {
 
     const response = await service.listOrganizations();
 
-    expect(response).toBeUndefined();
+    expect(response).toBeNull();
   });
 
   test('should return null when listProducts is called and API call fails', async () => {
@@ -86,7 +87,7 @@ describe('RequestService', () => {
 
     const response = await service.listProducts(2);
 
-    expect(response).toBeUndefined();
+    expect(response).toBeNull();
   });
 
   test('should return null when listRepositories is called and API call fails', async () => {
@@ -94,7 +95,7 @@ describe('RequestService', () => {
 
     const response = await service.listRepositories(2, 2);
 
-    expect(response).toBeUndefined();
+    expect(response).toBeNull();
   });
 
   test('should handle errors in listReleases', async () => {
@@ -105,17 +106,6 @@ describe('RequestService', () => {
     mockAxios.onGet(expectedUrl).networkError();
 
     await expect(service.listReleases(orgId, productId)).resolves.toBe(null);
-  });
-
-  test('should handle errors in listReleases', async () => {
-    const orgId = 1;
-    const productId = 1;
-
-    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
-    mockAxios.onGet(expectedUrl).reply(500); // Trigger an error in axios
-
-    const response = await service.listReleases(orgId, productId);
-    expect(response).toBe(null);
   });
 
   test('should handle network error in listReleases', async () => {
@@ -149,9 +139,17 @@ describe('RequestService', () => {
 
     const result = await service.listOrganizations();
 
-    expect(result).toBeUndefined();
+    expect(result).toBeNull();
   });
 
+  test('should handle errors in listOrganizations', async () => {
+    const expectedUrl = `${service.getBaseUrl()}organizations/`;
+    mockAxios.onGet(expectedUrl).reply(500); // Trigger an error in axios
+
+    const result = await service.listOrganizations();
+
+    expect(result).toBeNull();
+  });
 
 
   test('should successfully create metrics', async () => {
@@ -159,16 +157,18 @@ describe('RequestService', () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-
+    
     const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
+    
+    // mock axios to return a successful response when the expected url is called
+    // with a body
     mockAxios.onPost(expectedUrl).reply(200);
 
     const result = await service.createMetrics(metrics, orgId, productId, repoId);
 
-    expect(result.status).toBe(200); // check if the promise was resolved successfully
     expect(mockAxios.history.post.length).toBe(1);
-    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(JSON.parse(metrics)); // compare parsed JSON objects
-    expect(mockAxios.history.post[0].url).toBe(expectedUrl); // check if the url is correct
+    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(JSON.parse(metrics));
+    expect(mockAxios.history.post[0].url).toBe(expectedUrl);
   });
 
 

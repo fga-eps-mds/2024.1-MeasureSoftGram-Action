@@ -33,9 +33,10 @@ export async function run() {
       return;
     }
 
+    console.log('Creating comment');
     const githubComment = new GithubComment()
     const message = githubComment.createMessage(result);
-
+    
     await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
   } catch (error: unknown) {
     if (error instanceof Error) {

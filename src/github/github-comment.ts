@@ -26,7 +26,7 @@ export default class GithubComment {
             issue_number: pullRequestNumber
         });
         const actionUser = "github-actions[bot]"
-
+        
         const existingComment = comments.find(
             (comment: any) => {
                 return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
