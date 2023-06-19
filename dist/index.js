@@ -13093,11 +13093,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createOrUpdateComment = exports.createMessage = exports.run = void 0;
-const core = __importStar(__nccwpck_require__(4946));
-const github = __importStar(__nccwpck_require__(2237));
-const utils_1 = __nccwpck_require__(3246);
-const sonarqube_1 = __importDefault(__nccwpck_require__(8365));
-const save_service_1 = __nccwpck_require__(9094);
+const core = __importStar(__nccwpck_require__(8834));
+const github = __importStar(__nccwpck_require__(2483));
+const utils_1 = __nccwpck_require__(2165);
+const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
+const save_service_1 = __nccwpck_require__(9729);
 async function run() {
     try {
         console.log('Starting action with Service');
@@ -13115,11 +13115,9 @@ async function run() {
         console.log(`Repo: ${repo.repo}`);
         console.log(`Owner: ${repo.owner}`);
         // set Endpoint environment variables
-        service.setMsgramServiceHost('https://msgram-service.herokuapp.com');
-        // service.setMsgramServiceHost('http://127.0.0.1:8080');
+        service.setMsgramServiceHost('https://measuresoft.herokuapp.com');
         const msgramServiceToken = core.getInput('msgramServiceToken'); // get the renamed secret
         service.setMsgToken(msgramServiceToken);
-        // service.setMsgToken('Token f3d5a62d7a8ef51cc823c24a21ed92418cb05c43');
         //log base url and token
         console.log(`Base URL: ${service.getBaseUrl()}`);
         console.log(`Token: ${service.getMsgToken()}`);
@@ -13420,22 +13418,19 @@ class SaveService {
     async calculateMeasures(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateMeasures: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
     async calculateCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
         const data = { characteristics: [{ key: "reliability" }, { key: "maintainability" }] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateCharacteristics: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
     async calculateSubCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
         const data = { subcharacteristics: [{ key: "modifiability" }, { key: "testing_status" }] };
-        const response = await this.makeRequest('post', url, { data: data });
-        // console.log("calculateSubCharacteristics: ", url);
+        const response = await this.makeRequest('post', url, data);
         return response; // Return response data
     }
     async calculateSQC(orgId, productId, repoId) {
