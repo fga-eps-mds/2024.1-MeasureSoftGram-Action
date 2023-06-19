@@ -28,7 +28,8 @@ export class SaveService {
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
         const config: AxiosRequestConfig = {
             headers: {
-                Authorization: this.MSG_TOKEN,
+                'Content-Type': 'application/json',
+                Authorization: this.MSG_TOKEN
             },
             method,
             url,
@@ -94,8 +95,9 @@ export class SaveService {
 
     public async createMetrics(metrics: string, orgId: number, productId: number, repoId: number): Promise<any> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
-        const data = { metrics: metrics };
-        const response = await this.makeRequest('post', url, data);
+        // const data = { metrics: metrics };
+        const jsonData = JSON.parse(metrics);
+        const response = await this.makeRequest('post', url, jsonData);
         // log url
         // console.log("metrics post: ", url);
         return response; // Return response data

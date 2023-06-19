@@ -30,7 +30,6 @@ export async function run() {
       pageSize: 500,
     })
 
-    const file_path = generateFilePath(currentDate, repo.repo);
 
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------ 
     // log repo info
@@ -78,7 +77,8 @@ export async function run() {
 
     let productId = null;
     let productExists = false;
-    const productName = 'MeasureSoftGram'
+    // const productName = 'MeasureSoftGram'
+    const productName = core.getInput('productName');
 
     for (const product of products) {
       if (product.name === productName) {
@@ -103,8 +103,7 @@ export async function run() {
     let repositoryExists = false;
 
     for (const repository of repositories) {
-      // if (repository.name === repo.repo) {
-      if (repository.name === '2023-1-MeasureSoftGram-Service') {
+      if (repository.name === repo.repo) {
         repositoryExists = true;
         repositoryId = repository.id;
         break;
@@ -112,24 +111,19 @@ export async function run() {
     }
 
     if (!repositoryExists) {
-      // throw new Error(`Repository ${repo.repo} does not exist.`);
-      throw new Error(`Repository 2023-1-MeasureSoftGram-Service does not exist.`);
+      throw new Error(`Repository ${repo.repo} does not exist.`);
     }
     else {
-      // console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
-      console.log(`Repository 2023-1-MeasureSoftGram-Service exists with id ${repositoryId}.`);
+      console.log(`Repository ${repo.repo} exists with id ${repositoryId}.`);
     }
 
     // check if a release is already created for the current date if not throw an error and end the action
     const responseReleases = await service.listReleases(orgId, productId);
-    // console.log('index: ', responseReleases);
     if (!responseReleases) {
       throw new Error('No releases found');
     }    
     // convert the current date to ISO string and remove the time
-
-    // const currentDateStr = currentDate.toISOString().split('T')[0];
-    const currentDateStr = '2023-06-06';
+    const currentDateStr = currentDate.toISOString().split('T')[0];
 
     let releaseId = null;
     let releaseExists = false;
@@ -155,17 +149,8 @@ export async function run() {
 
     // ------------------------------------ END OF NEW SERVICE STUFF ------------------------------------
 
-    console.log('Creating folder for raw data');
-    // create folder if it doesn't exist
-    createFolder('./analytics-raw-data');
-    console.log(`Writing file to ${file_path}`);
+      
     const string_metrics = JSON.stringify(metrics);
-
-    fs.writeFile(file_path, string_metrics, (err: any) => {
-      if (err) throw err;
-      console.log('Data written to file.');
-    });
-
     console.log('Calculating metrics, measures, characteristics and subcharacteristics');
     // ------------------------------------ NEW SERVICE STUFF ------------------------------------
     // get the msgram.json file and send it to the service
@@ -236,22 +221,6 @@ export async function run() {
   }
 }
 
-export function createFolder(folderPath: string) {
-  fs.mkdir(folderPath, { recursive: true }, (err: any) => {
-    if (err) {
-      console.error(`Error creating folder: ${err}`);
-      return;
-    }
-    console.log('Folder created successfully.');
-  });
-}
-
-export function generateFilePath(currentDate: Date, repo: string) {
-  const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
-  const file_path = `./analytics-raw-data/fga-eps-mds-${repo}-${formattedDate}.json`;
-
-  return file_path;
-}
 
 // function to create a message with the results
 export function createMessage(result: Array<CalculatedMsgram>) {
