@@ -19,7 +19,7 @@ describe('getInfo', () => {
       switch(inputName) {
         case 'projectKey': return 'mockProjectKey';
         case 'host': return 'mockHost';
-        case 'token': return 'mockToken';
+        case 'sonarToken': return 'mockToken';
         default: return '';
       }
     });
@@ -40,7 +40,7 @@ describe('getInfo', () => {
     mockedCore.getInput.mockImplementation((inputName: string) => {
       switch(inputName) {
         case 'host': return 'mockHost';
-        case 'token': return 'mockToken';
+        case 'sonarToken': return 'mockToken';
         default: return '';
       }
     });

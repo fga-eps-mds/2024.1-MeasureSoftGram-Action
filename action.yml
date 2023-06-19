@@ -4,7 +4,7 @@ inputs:
   host:
     description: "SonarQube Server URL"
     required: false
-  token:
+  sonartoken:
     description: "Sonarqube token"
     required: false
   projectKey:

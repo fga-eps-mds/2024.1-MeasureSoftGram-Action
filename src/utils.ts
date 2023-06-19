@@ -16,6 +16,6 @@ export function getInfo(repo: { owner: string; repo: string }): Info {
                 : `${repo.owner}_${repo.repo}`,
         },
         host: core.getInput('host'),
-        token: core.getInput('token'),
+        token: core.getInput('sonarToken'),
     }
 }
