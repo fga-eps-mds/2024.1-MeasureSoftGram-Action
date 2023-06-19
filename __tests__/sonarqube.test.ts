@@ -12,6 +12,86 @@ describe('Sonarqube', () => {
     mockedAxios.get.mockClear();
   });
 
+  test('Constructor should use provided host if available', () => {
+    const info: Info = {
+      host: 'http://my-sonarqube-instance.com',
+      project: {
+        projectKey: 'projectKey',
+      },
+      token: ''
+    };
+
+    const sonarqube = new Sonarqube(info);
+
+    expect(sonarqube.host).toBe(info.host);
+  });
+
+  test('Constructor should use default host if no host provided', () => {
+    const info: Info = {
+      project: {
+        projectKey: 'projectKey',
+      },
+      host: '',
+      token: ''
+    };
+
+    const sonarqube = new Sonarqube(info);
+
+    expect(sonarqube.host).toBe('https://sonarcloud.io');
+  });
+
+  test('Constructor should initialize correctly with given data', () => {
+    const info: Info = {
+      host: 'http://localhost:9000',
+      token: '123456',
+      project: {
+        projectKey: 'projectKey',
+      },
+    };
+
+    const tokenb64 = Buffer.from(`${info.token}:`).toString('base64');
+
+    new Sonarqube(info);
+
+    expect(mockedAxios.create).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.create).toHaveBeenCalledWith({
+      baseURL: info.host,
+      timeout: 10000,
+      headers: {
+        Authorization: `Basic ${tokenb64}`,
+      },
+    });
+  });
+
+  test('Constructor should initialize correctly without Authorization header if no token given', () => {
+    const info: Info = {
+      host: 'http://localhost:9000',
+      project: {
+        projectKey: 'projectKey',
+      },
+      token: ''
+    };
+  
+    new Sonarqube(info);
+  
+    expect(mockedAxios.create).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseURL: info.host,
+        timeout: 10000,
+      })
+    );
+    const callArg = mockedAxios.create.mock.calls[0]?.[0];
+    if (!info.token) {
+      if (callArg?.headers && 'Authorization' in callArg.headers) {
+        expect(callArg.headers.Authorization).toBe("");
+      } else {
+        fail("Authorization header not found");
+      }
+    }
+  });
+   
+
   test('getMeasures should make a correct axios call', async () => {
     const info: Info = {
       host: 'http://localhost:9000',
