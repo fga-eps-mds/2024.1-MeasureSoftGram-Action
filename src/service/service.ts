@@ -1,6 +1,14 @@
 import { RequestService } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
-import { CalculatedMsgram } from '..';
+
+export interface CalculatedMsgram {
+    repository: { key: string; value: string }[];
+    version: { key: string; value: string }[];
+    measures: { key: string; value: number }[];
+    subcharacteristics: { key: string; value: number }[];
+    characteristics: { key: string; value: number }[];
+    sqc: { key: string; value: number }[];
+}
 
 export default class Service {
     private repo: string;
@@ -151,7 +159,7 @@ export default class Service {
         console.log('SQC: \n', response_sqc);
         const data_sqc = response_sqc.data;
 
-        return {data_characteristics, data_sqc};
+        return { data_characteristics, data_sqc };
     }
 
     public async run() {
@@ -160,7 +168,7 @@ export default class Service {
         const productId: number = await this.checkProductExists(this.requestService, this.productName, orgId);
         const repositoryId: number = await this.checkRepositoryExists(this.requestService, orgId, productId);
         await this.checkReleaseExists(this.requestService, orgId, productId);
-        const {data_characteristics, data_sqc} = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_sqc } = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((char: { key: any; latest: { value: any; }; }) => {
             return {
