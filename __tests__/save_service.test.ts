@@ -1,11 +1,7 @@
 import { SaveService } from '../src/save_service';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-// import { get } from 'http';
 
-// const MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
-// const MSGRAM_SERVICE_HOST = 'http://127.0.0.1:8080';
-// const BASE_URL = `${MSGRAM_SERVICE_HOST}/api/v1/`;
 
 describe('SaveService', () => {
   let service: SaveService;
@@ -110,19 +106,80 @@ describe('SaveService', () => {
     expect(response).toBeUndefined();
   });
 
+  test('should handle errors in listReleases', async () => {
+    const orgId = 1;
+    const productId = 1;
+
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
+    mockAxios.onGet(expectedUrl).networkError();
+
+    await expect(service.listReleases(orgId, productId)).resolves.toBe(null);
+  });
+
+  test('should handle errors in listReleases', async () => {
+    const orgId = 1;
+    const productId = 1;
+
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
+    mockAxios.onGet(expectedUrl).reply(500); // Trigger an error in axios
+
+    const response = await service.listReleases(orgId, productId);
+    expect(response).toBe(null);
+  });
+
+  test('should handle network error in listReleases', async () => {
+    const orgId = 1;
+    const productId = 1;
   
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
+    mockAxios.onGet(expectedUrl).networkError();
+  
+    const result = await service.listReleases(orgId, productId);
+  
+    expect(result).toBeNull();
+  });
+  
+  test('should handle no data received from the API in listReleases', async () => {
+    const orgId = 1;
+    const productId = 1;
+  
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/release/`;
+    mockAxios.onGet(expectedUrl).reply(200, null); // Returns a successful status but no data
+  
+    const result = await service.listReleases(orgId, productId);
+  
+    expect(result).toBeNull();
+  });
+  
+  // Here, we are checking if the error path of the private `makeRequest` function is called when `listOrganizations` is called
+  test('should handle network error in listOrganizations', async () => {
+    const expectedUrl = `${service.getBaseUrl()}organizations/`;
+    mockAxios.onGet(expectedUrl).networkError();
+  
+    const result = await service.listOrganizations();
+  
+    expect(result).toBeUndefined();
+  });
+  
+  
+
   test('should successfully create metrics', async () => {
-    const metrics = 'metrics';
+    const metrics = '{"metric1":"value1", "metric2":"value2"}'; // a JSON string
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`).reply(200);
 
-    await service.createMetrics(metrics, orgId, productId, repoId);
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
+    mockAxios.onPost(expectedUrl).reply(200);
 
+    const result = await service.createMetrics(metrics, orgId, productId, repoId);
+
+    expect(result.status).toBe(200); // check if the promise was resolved successfully
     expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toEqual(JSON.stringify({ metrics: metrics }));
+    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(JSON.parse(metrics)); // compare parsed JSON objects
+    expect(mockAxios.history.post[0].url).toBe(expectedUrl); // check if the url is correct
   });
+
 
   test('should successfully calculate measures', async () => {
     const orgId = 1;

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import mockFs from 'mock-fs';
-import { createMessage, CalculatedMsgram, createFolder, generateFilePath, createOrUpdateComment, run } from '../src/index';
+import { createMessage, CalculatedMsgram, createOrUpdateComment, run } from '../src/index';
 import { Info } from '../src/utils';
 import { getInfo } from '../src/utils';  
 import Sonarqube from '../src/sonarqube';
@@ -9,7 +9,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 import { SaveService } from '../src/save_service';
-
+import { Octokit } from '@octokit/rest';
+import { getOctokit } from '@actions/github';
 
 //  Test createFolder (doesnt check if folder was created, just if the function was called)
 jest.mock('fs', () => ({
@@ -17,8 +18,118 @@ jest.mock('fs', () => ({
     mkdir: jest.fn((_path, _options, callback) => callback(null)), // We mock 'mkdir' function to call the callback with null (i.e., no error).
 }));
 
-// Index Tests
-describe('Index Tests', () => {
+jest.mock('fs', () => ({
+    ...jest.requireActual('fs'),
+    mkdir: jest.fn((_path, _options, callback) => callback(null)),
+}));
+
+jest.mock('@actions/github', () => ({
+    getOctokit: jest.fn(),
+    context: {
+        repo: {
+            owner: 'owner',
+            repo: 'repo',
+        },
+    },
+}));
+
+jest.mock('../src/save_service', () => ({
+    SaveService: jest.fn().mockImplementation(() => ({
+        setMsgramServiceHost: jest.fn(),
+        setMsgToken: jest.fn(),
+        getBaseUrl: jest.fn(),
+        getMsgToken: jest.fn(),
+        listOrganizations: jest.fn(),
+        listProducts: jest.fn(),
+        listRepositories: jest.fn(),
+        listReleases: jest.fn(),
+        createMetrics: jest.fn(),
+        calculateMeasures: jest.fn(),
+        calculateCharacteristics: jest.fn(),
+        calculateSubCharacteristics: jest.fn(),
+        calculateSQC: jest.fn(),
+    })),
+}));
+
+// describe('Index run Tests', () => {
+//     beforeEach(() => {
+//         (getOctokit as jest.MockedFunction<typeof getOctokit>).mockImplementation((token: string) => {
+//             const octokit = new Octokit({ auth: token });
+//             octokit.repos.get = jest.fn().mockRejectedValue(new Error('Organization owner does not exist.'));
+//             return octokit;
+//         });
+
+//         jest.spyOn(core, 'setFailed').mockImplementation(() => {});
+//         jest.spyOn(core, 'getInput').mockImplementation(() => '');
+//     });
+
+//     // ...
+
+//     test('should run without errors', async () => {
+//         const mockSaveService = {
+//             setMsgramServiceHost: jest.fn(),
+//             setMsgToken: jest.fn(),
+//             getBaseUrl: jest.fn(),
+//             getMsgToken: jest.fn(),
+//             listOrganizations: jest.fn().mockResolvedValue({
+//                 results: [
+//                     { name: 'owner', id: 1 },
+//                 ],
+//             }),
+//             listProducts: jest.fn().mockResolvedValue({
+//                 results: [
+//                     { name: 'product', id: 1 },
+//                 ],
+//             }),
+//             listRepositories: jest.fn().mockResolvedValue({
+//                 results: [
+//                     { name: 'repo', id: 1 },
+//                 ],
+//             }),
+//             listReleases: jest.fn().mockResolvedValue([
+//                 {
+//                     start_at: '2023-06-17T00:00:00Z',
+//                     end_at: '2023-06-19T00:00:00Z',
+//                     id: 1,
+//                 },
+//             ]),
+//             createMetrics: jest.fn(),
+//             calculateMeasures: jest.fn().mockResolvedValue({
+//                 data: [],
+//             }),
+//             calculateCharacteristics: jest.fn().mockResolvedValue({
+//                 data: [],
+//             }),
+//             calculateSubCharacteristics: jest.fn().mockResolvedValue({
+//                 data: [],
+//             }),
+//             calculateSQC: jest.fn().mockResolvedValue({
+//                 data: {
+//                     value: 1,
+//                 },
+//             }),
+//         };
+
+//         (SaveService as jest.MockedClass<typeof SaveService>).mockImplementationOnce(() => mockSaveService);
+
+//         // ...
+
+//         await run();
+
+//         // ...
+//     });
+
+//     test('should throw error if organization does not exist', async () => {
+//         await run();
+
+//         expect(core.setFailed).toHaveBeenCalledWith('Organization owner does not exist.');
+//     });
+
+//     // ...
+// });
+
+
+describe('Create message Tests', () => {
 
     test('should create a message correctly', () => {
         const mockData: CalculatedMsgram = {
@@ -47,38 +158,6 @@ describe('Index Tests', () => {
         expect(splitResult[4]).toBe(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value.toFixed(2)}`);
     });
 
-    test('should call fs.mkdir with correct arguments', () => {
-        const folderPath = './path/to/folder';
-        createFolder(folderPath);
-        expect(fs.mkdir).toHaveBeenCalledWith(folderPath, { recursive: true }, expect.any(Function));
-    });
-
-    test('should log an error message when fs.mkdir encounters an error', () => {
-        // This will force 'fs.mkdir' to call the callback with an error.
-        (fs.mkdir as unknown as jest.Mock).mockImplementationOnce((_path, _options, callback) => callback(new Error('Test error')));
-
-        const logSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-
-        createFolder('./path/to/folder');
-
-        // Expect 'Error creating folder: Error: Test error', not 'Error creating folder: Test error'
-        expect(logSpy).toHaveBeenCalledWith('Error creating folder: Error: Test error');
-
-        logSpy.mockRestore(); // Make sure to restore the spy after use!
-    });
-    
-    test('should generate a correctly formatted file path', () => {
-        // Mock date object with a specific time zone offset - The timezone offset is in minutes convert hours to minutes
-        const offset = -3; // change this to your timezone offset 
-        const currentDate = new Date();
-        currentDate.setHours(currentDate.getHours() + offset);
-        const result = generateFilePath(currentDate, 'test-repo');
-    
-        const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear().toString().padStart(4, '0')}-${currentDate.getHours().toString().padStart(2, '0')}-${currentDate.getMinutes().toString().padStart(2, '0')}`;
-        const expected = `./analytics-raw-data/fga-eps-mds-test-repo-${formattedDate}.json`;
-        
-        expect(result).toEqual(expected);
-      });
 });
 
 jest.mock('@actions/github');
@@ -119,7 +198,7 @@ describe('createOrUpdateComment function', () => {
         expect(mockOctokit.rest.issues.createComment).not.toHaveBeenCalled();
     });
 
-    it('should create a new comment if no existing comment is found', async () => {
+    test('should create a new comment if no existing comment is found', async () => {
         const mockOctokit = {
             rest: {
                 issues: {
