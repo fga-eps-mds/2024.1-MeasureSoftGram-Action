@@ -2,8 +2,6 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
-
-
 export interface MetricsResponseAPI {
   paging: {
       pageIndex: number
@@ -33,7 +31,7 @@ export default class Sonarqube {
   public host: string
   private token: string
   public project: {
-    projectKey: string
+    sonarProjectKey: string
   }
   public sonarMetrics = [
       'files',
@@ -59,7 +57,7 @@ export default class Sonarqube {
     const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
 
     console.log(`SonarQube host: ${this.host}`)
-    console.log(`SonarQube project: ${this.project.projectKey}`)
+    console.log(`SonarQube project: ${this.project.sonarProjectKey}`)
 
     this.http = axios.create({
         baseURL: this.host,
@@ -77,7 +75,7 @@ export default class Sonarqube {
     }): Promise<MetricsResponseAPI> => {
     try {
       const response = await this.http.get<MetricsResponseAPI>(
-        `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
+        `/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
       )
 
       if (response.status !== 200 || !response.data) {
