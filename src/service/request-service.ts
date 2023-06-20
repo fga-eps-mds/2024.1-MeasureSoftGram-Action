@@ -1,12 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
-export interface ResponseList {
-    count: number;
-    next: string | null;
-    previous: string | null;
-    results: Array<undefined>;
-}
-
 export interface Organization {
     id: number;
     url: string;
@@ -14,7 +7,7 @@ export interface Organization {
     key: string;
     description: string;
     products: Array<string>;
-    actions: undefined;
+    actions: any;
 }
 
 export interface Product {
@@ -25,18 +18,19 @@ export interface Product {
     organization: string;
     description: string;
     repositories: Array<string>;
-    actions: undefined;
+    actions: any;
 }
 
 export interface Repository {
     id: number;
+    url: string;
     name: string;
     key: string;
     description: string;
     product: string;
-    latest_values: undefined;
-    historical_values: undefined;
-    actions: undefined;
+    latest_values: any;
+    historical_values: any;
+    actions: unknown;
 }
 
 export interface ResponseListRepositories {
@@ -59,6 +53,14 @@ export interface ResponseListReleases {
     start_at: string;
     created_by: number;
     end_at: string;
+}
+
+
+export interface ResponseListOrganizations {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Array<Organization>;
 }
 
 export interface ResponseCalculateCharacteristics {
@@ -156,7 +158,7 @@ export class RequestService {
         }
     }
 
-    public async listOrganizations(): Promise<ResponseList> {
+    public async listOrganizations(): Promise<ResponseListOrganizations> {
         const url = `${this.baseUrl}organizations/`;
         const response =  await this.makeRequest('get', url);
         return response?.data;

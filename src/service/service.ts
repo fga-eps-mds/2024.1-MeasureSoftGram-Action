@@ -18,11 +18,10 @@ export default class Service {
     private productName: string;
     private metrics: MetricsResponseAPI;
 
-    constructor(repo: string, owner: string, requestService: RequestService, productName: string, metrics: MetricsResponseAPI) {
+    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI, currentDate: Date) {
         this.repo = repo;
         this.owner = owner;
-        this.requestService = requestService;
-        this.currentDate = new Date();
+        this.currentDate = currentDate;
         this.productName = productName;
         this.metrics = metrics;
     }
@@ -49,14 +48,12 @@ export default class Service {
         }
     }
 
-    public async checkReleaseExists(requestService: RequestService, orgId: number, productId: number): Promise<void> {
-        const responseReleases = await requestService.listReleases(orgId, productId);
-
+    public async checkReleaseExists(listReleases: Array<ResponseListReleases>, orgId: number, productId: number): Promise<void> {
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;
 
-        for (const release of responseReleases) {
+        for (const release of listReleases) {
             const startAt = release.start_at.split('T')[0];
             const endAt = release.end_at.split('T')[0];
 
@@ -93,19 +90,20 @@ export default class Service {
         return { data_characteristics, data_sqc };
     }
 
-    public async run() {
+    public async run(requestService: RequestService) {
         this.logRepoInfo();
-        const listOrganizations = await this.requestService.listOrganizations();
-        const orgId: number = await this.checkEntityExists(listOrganizations, this.owner);
+        const listOrganizations = await requestService.listOrganizations();
+        const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
 
-        const listProducts = await this.requestService.listProducts(orgId);
-        const productId: number = await this.checkEntityExists(listProducts, this.productName);
+        const listProducts = await requestService.listProducts(orgId);
+        const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
 
-        const listRepositories = await this.requestService.listRepositories(orgId, productId);
-        const repositoryId: number = await this.checkEntityExists(listRepositories, this.repo);
+        const listRepositories = await requestService.listRepositories(orgId, productId);
+        const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
 
-        await this.checkReleaseExists(this.requestService, orgId, productId);
-        const { data_characteristics, data_sqc } = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
+        const listReleases = await requestService.listReleases(orgId, productId);
+        await this.checkReleaseExists(listReleases, orgId, productId);
+        const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {

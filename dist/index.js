@@ -13172,6 +13172,7 @@ async function run() {
     try {
         console.log('Starting action with Service');
         const { repo } = github.context;
+        const currentDate = new Date();
         const info = (0, utils_1.getInfo)(repo);
         const sonarqube = new sonarqube_1.default(info);
         const productName = core.getInput('productName');
@@ -13181,8 +13182,8 @@ async function run() {
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
         });
-        const service = new service_1.default(repo.repo, repo.owner, requestService, productName, metrics);
-        const result = await service.run();
+        const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
+        const result = await service.run(requestService);
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         if (!pull_request) {
@@ -13329,11 +13330,10 @@ exports.RequestService = RequestService;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 class Service {
-    constructor(repo, owner, requestService, productName, metrics) {
+    constructor(repo, owner, productName, metrics, currentDate) {
         this.repo = repo;
         this.owner = owner;
-        this.requestService = requestService;
-        this.currentDate = new Date();
+        this.currentDate = currentDate;
         this.productName = productName;
         this.metrics = metrics;
     }
@@ -13341,69 +13341,25 @@ class Service {
         console.log(`Repo: ${this.repo}`);
         console.log(`Owner: ${this.owner}`);
     }
-    async checkOrganizationExists() {
-        const inputOrganization = this.owner;
-        console.log(`Organization: ${inputOrganization}`);
-        const response = await this.requestService.listOrganizations();
-        const organizations = response.results;
-        let orgId = null;
-        let organizationExists = false;
-        for (const org of organizations) {
-            if (org.name === inputOrganization) {
-                organizationExists = true;
-                orgId = org.id;
+    async checkEntityExists(entities, name) {
+        let entityId = null;
+        for (const entity of entities) {
+            if (entity.name === name) {
+                entityId = entity.id;
                 break;
             }
         }
-        if (!organizationExists) {
-            throw new Error(`Organization ${inputOrganization} does not exist.`);
+        if (!entityId) {
+            throw new Error(`Entity ${name} does not exist.`);
         }
         else {
-            console.log(`Organization ${inputOrganization} exists with id ${orgId}.`);
+            return entityId;
         }
-        return orgId;
     }
-    async checkProductExists(requestService, productName, orgId) {
-        const response = await requestService.listProducts(orgId);
-        const products = response.results;
-        let productId = null;
-        for (const product of products) {
-            if (product.name === productName) {
-                productId = product.id;
-                break;
-            }
-        }
-        if (!productId) {
-            throw new Error(`Product ${productName} does not exist.`);
-        }
-        else {
-            console.log(`Product ${productName} exists with id ${productId}.`);
-        }
-        return productId;
-    }
-    async checkRepositoryExists(requestService, orgId, productId) {
-        const responseRepositories = await requestService.listRepositories(orgId, productId);
-        const repositories = responseRepositories.results;
-        let repositoryId = null;
-        for (const repository of repositories) {
-            if (repository.name === this.repo) {
-                repositoryId = repository.id;
-                break;
-            }
-        }
-        if (repositoryId === null) {
-            throw new Error(`Repository ${this.repo} does not exist.`);
-        }
-        else {
-            console.log(`Repository ${this.repo} exists with id ${repositoryId}.`);
-        }
-        return repositoryId;
-    }
-    async checkReleaseExists(requestService, orgId, productId) {
-        const responseReleases = await requestService.listReleases(orgId, productId);
+    async checkReleaseExists(listReleases, orgId, productId) {
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
         let releaseId = null;
-        for (const release of responseReleases) {
+        for (const release of listReleases) {
             const startAt = release.start_at.split('T')[0];
             const endAt = release.end_at.split('T')[0];
             if (currentDateStr >= startAt && currentDateStr <= endAt) {
@@ -13432,13 +13388,17 @@ class Service {
         console.log('SQC: \n', data_sqc);
         return { data_characteristics, data_sqc };
     }
-    async run() {
+    async run(requestService) {
         this.logRepoInfo();
-        const orgId = await this.checkOrganizationExists();
-        const productId = await this.checkProductExists(this.requestService, this.productName, orgId);
-        const repositoryId = await this.checkRepositoryExists(this.requestService, orgId, productId);
-        await this.checkReleaseExists(this.requestService, orgId, productId);
-        const { data_characteristics, data_sqc } = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
+        const listOrganizations = await requestService.listOrganizations();
+        const orgId = await this.checkEntityExists(listOrganizations.results, this.owner);
+        const listProducts = await requestService.listProducts(orgId);
+        const productId = await this.checkEntityExists(listProducts.results, this.productName);
+        const listRepositories = await requestService.listRepositories(orgId, productId);
+        const repositoryId = await this.checkEntityExists(listRepositories.results, this.repo);
+        const listReleases = await requestService.listReleases(orgId, productId);
+        await this.checkReleaseExists(listReleases, orgId, productId);
+        const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
         const characteristics = data_characteristics.map((data) => {
             return {
                 key: data.key,
@@ -13457,7 +13417,7 @@ class Service {
                 characteristics: characteristics,
                 sqc: sqc
             }];
-        console.log('Result: \n', result);
+        console.log('Result: \n', JSON.stringify(result));
         return result;
     }
 }

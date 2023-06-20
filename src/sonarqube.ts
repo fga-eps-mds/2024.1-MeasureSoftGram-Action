@@ -2,6 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
+
+
 export interface MetricsResponseAPI {
   paging: {
       pageIndex: number
@@ -15,15 +17,15 @@ export interface MetricsResponseAPI {
       qualifier: string
       measures: [unknown]
   },
-  components: {
+  components: [{
       id: string
       key: string
       name: string
       qualifier: string
       path: string
       language: string
-      measures: [unknown]
-  },
+      measures: unknown
+  }],
 }
 
 export default class Sonarqube {

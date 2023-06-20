@@ -11,6 +11,7 @@ export async function run() {
   try {
     console.log('Starting action with Service');
     const { repo } = github.context;
+    const currentDate = new Date();
     const info:Info = getInfo(repo);
     const sonarqube = new Sonarqube(info);
     const productName = core.getInput('productName');
@@ -22,8 +23,8 @@ export async function run() {
       pageSize: 500,
     })
 
-    const service = new Service(repo.repo, repo.owner, requestService, productName, metrics)
-    const result = await service.run()
+    const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
+    const result = await service.run(requestService)
 
     const octokit = github.getOctokit(githubToken);
     const { pull_request } = github.context.payload;
