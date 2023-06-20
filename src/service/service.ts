@@ -1,4 +1,4 @@
-import { RequestService, ResponseCalculateCharacteristics } from "./request-service";
+import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 
 export interface CalculatedMsgram {
@@ -32,75 +32,21 @@ export default class Service {
         console.log(`Owner: ${this.owner}`);
     }
 
-    public async checkOrganizationExists(): Promise<number> {
-        const inputOrganization = this.owner;
-        console.log(`Organization: ${inputOrganization}`);
+    public async checkEntityExists(entities: Array<Product | Repository | Organization>, name: string): Promise<number> {
+        let entityId = null;
 
-        const response = await this.requestService.listOrganizations();
-        const organizations = response.results;
-
-        let orgId = null;
-        let organizationExists = false;
-
-        for (const org of organizations) {
-            if (org.name === inputOrganization) {
-                organizationExists = true;
-                orgId = org.id;
+        for (const entity of entities) {
+            if (entity.name === name) {
+                entityId = entity.id; 
                 break;
             }
         }
 
-        if (!organizationExists) {
-            throw new Error(`Organization ${inputOrganization} does not exist.`);
+        if (!entityId) {
+            throw new Error(`Entity ${name} does not exist.`);
         } else {
-            console.log(`Organization ${inputOrganization} exists with id ${orgId}.`);
+            return entityId;
         }
-
-        return orgId;
-    }
-
-    public async checkProductExists(requestService: RequestService, productName: string, orgId: number): Promise<number> {
-        const response = await requestService.listProducts(orgId);
-        const products = response.results;
-
-        let productId = null;
-
-        for (const product of products) {
-            if (product.name === productName) {
-                productId = product.id;
-                break;
-            }
-        }
-
-        if (!productId) {
-            throw new Error(`Product ${productName} does not exist.`);
-        } else {
-            console.log(`Product ${productName} exists with id ${productId}.`);
-        }
-
-        return productId;
-    }
-
-    public async checkRepositoryExists(requestService: RequestService, orgId: number, productId: number): Promise<number> {
-        const responseRepositories = await requestService.listRepositories(orgId, productId);
-        const repositories = responseRepositories.results;
-
-        let repositoryId = null;
-
-        for (const repository of repositories) {
-            if (repository.name === this.repo) {
-                repositoryId = repository.id;
-                break;
-            }
-        }
-
-        if (repositoryId === null) {
-            throw new Error(`Repository ${this.repo} does not exist.`);
-        } else {
-            console.log(`Repository ${this.repo} exists with id ${repositoryId}.`);
-        }
-
-        return repositoryId;
     }
 
     public async checkReleaseExists(requestService: RequestService, orgId: number, productId: number): Promise<void> {
@@ -149,9 +95,15 @@ export default class Service {
 
     public async run() {
         this.logRepoInfo();
-        const orgId: number = await this.checkOrganizationExists();
-        const productId: number = await this.checkProductExists(this.requestService, this.productName, orgId);
-        const repositoryId: number = await this.checkRepositoryExists(this.requestService, orgId, productId);
+        const listOrganizations = await this.requestService.listOrganizations();
+        const orgId: number = await this.checkEntityExists(listOrganizations, this.owner);
+
+        const listProducts = await this.requestService.listProducts(orgId);
+        const productId: number = await this.checkEntityExists(listProducts, this.productName);
+
+        const listRepositories = await this.requestService.listRepositories(orgId, productId);
+        const repositoryId: number = await this.checkEntityExists(listRepositories, this.repo);
+
         await this.checkReleaseExists(this.requestService, orgId, productId);
         const { data_characteristics, data_sqc } = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
 
@@ -176,7 +128,7 @@ export default class Service {
             sqc: sqc
         }];
 
-        console.log('Result: \n', result);
+        console.log('Result: \n', JSON.stringify(result));
         return result;
     }
 }

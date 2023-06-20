@@ -7,6 +7,16 @@ export interface ResponseList {
     results: Array<undefined>;
 }
 
+export interface Organization {
+    id: number;
+    url: string;
+    name: string;
+    key: string;
+    description: string;
+    products: Array<string>;
+    actions: undefined;
+}
+
 export interface Product {
     id: number;
     url: string;
