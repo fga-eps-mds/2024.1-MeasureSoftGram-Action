@@ -1,4 +1,4 @@
-import { RequestService } from "./request-service";
+import { RequestService, ResponseCalculateCharacteristics } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 
 export interface CalculatedMsgram {
@@ -32,7 +32,7 @@ export default class Service {
         console.log(`Owner: ${this.owner}`);
     }
 
-    private async checkOrganizationExists(): Promise<number> {
+    public async checkOrganizationExists(): Promise<number> {
         const inputOrganization = this.owner;
         console.log(`Organization: ${inputOrganization}`);
 
@@ -59,22 +59,20 @@ export default class Service {
         return orgId;
     }
 
-    private async checkProductExists(requestService: RequestService, productName: string, orgId: number): Promise<number> {
-        const responseProducts = await requestService.listProducts(orgId);
-        const products = responseProducts.results;
+    public async checkProductExists(requestService: RequestService, productName: string, orgId: number): Promise<number> {
+        const response = await requestService.listProducts(orgId);
+        const products = response.results;
 
         let productId = null;
-        let productExists = false;
 
         for (const product of products) {
             if (product.name === productName) {
-                productExists = true;
                 productId = product.id;
                 break;
             }
         }
 
-        if (!productExists) {
+        if (!productId) {
             throw new Error(`Product ${productName} does not exist.`);
         } else {
             console.log(`Product ${productName} exists with id ${productId}.`);
@@ -83,22 +81,20 @@ export default class Service {
         return productId;
     }
 
-    private async checkRepositoryExists(requestService: RequestService, orgId: number, productId: number): Promise<number> {
+    public async checkRepositoryExists(requestService: RequestService, orgId: number, productId: number): Promise<number> {
         const responseRepositories = await requestService.listRepositories(orgId, productId);
         const repositories = responseRepositories.results;
 
         let repositoryId = null;
-        let repositoryExists = false;
 
         for (const repository of repositories) {
             if (repository.name === this.repo) {
-                repositoryExists = true;
                 repositoryId = repository.id;
                 break;
             }
         }
 
-        if (!repositoryExists) {
+        if (repositoryId === null) {
             throw new Error(`Repository ${this.repo} does not exist.`);
         } else {
             console.log(`Repository ${this.repo} exists with id ${repositoryId}.`);
@@ -107,57 +103,46 @@ export default class Service {
         return repositoryId;
     }
 
-    private async checkReleaseExists(requestService: RequestService, orgId: number, productId: number): Promise<string> {
+    public async checkReleaseExists(requestService: RequestService, orgId: number, productId: number): Promise<void> {
         const responseReleases = await requestService.listReleases(orgId, productId);
-        if (!responseReleases) {
-            throw new Error('No releases found');
-        }
 
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;
-        let releaseExists = false;
 
         for (const release of responseReleases) {
             const startAt = release.start_at.split('T')[0];
             const endAt = release.end_at.split('T')[0];
 
             if (currentDateStr >= startAt && currentDateStr <= endAt) {
-                releaseExists = true;
                 releaseId = release.id;
                 break;
             }
         }
 
-        if (!releaseExists) {
+        if (releaseId === null) {
             throw new Error(`No release is happening on ${currentDateStr}.`);
         } else {
             console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
         }
-
-        return releaseId;
     }
 
-    private async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
+    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
         const string_metrics = JSON.stringify(metrics);
         console.log('Calculating metrics, measures, characteristics and subcharacteristics');
 
-        await requestService.createMetrics(string_metrics, orgId, productId, repositoryId);
-        const response_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
-        const data_measures = response_measures.data;
+        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
 
-        const response_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
-        const data_characteristics = response_characteristics.data;
+        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
         console.log('Calculated characteristics: \n', data_characteristics);
 
-        const response_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
-        const data_subcharacteristics = response_subcharacteristics.data;
-        console.log('Calculated subcharacteristics: \n', response_subcharacteristics);
+        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
+        console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
 
-        const response_sqc = await requestService.calculateSQC(orgId, productId, repositoryId);
-        console.log('SQC: \n', response_sqc);
-        const data_sqc = response_sqc.data;
+        const data_sqc = await requestService.calculateSQC(orgId, productId, repositoryId);
+        console.log('SQC: \n', data_sqc);
 
         return { data_characteristics, data_sqc };
     }
@@ -170,10 +155,10 @@ export default class Service {
         await this.checkReleaseExists(this.requestService, orgId, productId);
         const { data_characteristics, data_sqc } = await this.createMetrics(this.requestService, this.metrics, orgId, productId, repositoryId);
 
-        const characteristics = data_characteristics.map((char: { key: any; latest: { value: any; }; }) => {
+        const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {
-                key: char.key,
-                value: char.latest.value
+                key: data.key,
+                value: data.latest.value
             };
         });
 

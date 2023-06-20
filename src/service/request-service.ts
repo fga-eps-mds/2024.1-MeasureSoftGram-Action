@@ -1,5 +1,101 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 
+export interface ResponseList {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Array<undefined>;
+}
+
+export interface Product {
+    id: number;
+    url: string;
+    name: string;
+    key: string;
+    organization: string;
+    description: string;
+    repositories: Array<string>;
+    actions: undefined;
+}
+
+export interface Repository {
+    id: number;
+    name: string;
+    key: string;
+    description: string;
+    product: string;
+    latest_values: undefined;
+    historical_values: undefined;
+    actions: undefined;
+}
+
+export interface ResponseListRepositories {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Array<Repository>;
+}
+
+export interface ResponseListProducts {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Array<Product>;
+}
+
+export interface ResponseListReleases {
+    id: number;
+    release_name: string;
+    start_at: string;
+    created_by: number;
+    end_at: string;
+}
+
+export interface ResponseCalculateCharacteristics {
+    id: number;
+    key: string;
+    name: string;
+    description: string;
+    latest: {
+        id: number;
+        value: number;
+        created_at: string;
+        characteristic_id: number;
+    }
+}
+
+export interface ResponseCalculateSubcharacteristics {
+    id: number;
+    key: string;
+    name: string;
+    description: string;
+    latest: {
+        id: number;
+        value: number;
+        created_at: string;
+        subcharacteristic_id: number;
+    }
+}
+
+export interface ResponseCalculateMeasures {
+    id: number;
+    key: string;
+    name: string;
+    description: string;
+    latest: {
+        id: number;
+        value: number;
+        created_at: string;
+        measure_id: number;
+    }
+}
+
+export interface ResponseCalculateSQC {
+    id: number;
+    value: number;
+    created_at: string;
+}
+
 export class RequestService {
     private MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
     private MSG_TOKEN = "'secret';"
@@ -42,74 +138,72 @@ export class RequestService {
             }
         }
 
-        if (method == "post") return response;
-
         if (response?.data) {
             console.log(`Data received. Status code: ${response.status}`);
-            return response.data;
+            return response;
         } else {
-            console.error('No data received from the API.');
+            throw new Error('No data received from the API.');
         }
-        return null;
     }
 
-    public async listOrganizations(): Promise<any> {
+    public async listOrganizations(): Promise<ResponseList> {
         const url = `${this.baseUrl}organizations/`;
-        const response = await this.makeRequest('get', url);
-        return response;
+        const response =  await this.makeRequest('get', url);
+        return response?.data;
     }
 
-    public async listProducts(orgId: number): Promise<any> {
+    public async listProducts(orgId: number): Promise<ResponseListProducts> {
         const url = `${this.baseUrl}organizations/${orgId}/products/`;
-        const response = await this.makeRequest('get', url);
-        return response;
+        const response =  await this.makeRequest('get', url);
+        return response?.data;
     }
 
-    public async listRepositories(orgId: number, productId: number): Promise<any> {
+    public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
-        return await this.makeRequest('get', url);
+        const response = await this.makeRequest('get', url);
+        return response?.data;
     }
 
-    public async listReleases(orgId: number, productId: number): Promise<any> {
+    public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;    
-        return await this.makeRequest('get', url);
+        const response =  await this.makeRequest('get', url);
+        return response?.data;
     }
     
 
-    public async createMetrics(metrics: string, orgId: number, productId: number, repoId: number): Promise<any> {
+    public async insertMetrics(metrics: string, orgId: number, productId: number, repoId: number): Promise<undefined> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
         const jsonData = JSON.parse(metrics);
         const response = await this.makeRequest('post', url, jsonData);
-
-        return response;
+        return response?.data;
     }
 
-    public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<any> {
+    public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
         const response = await this.makeRequest('post', url, data);
-        return response;
+        return response?.data;
     }
 
-    public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
+    public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateCharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
         const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" } ] };
         const response = await this.makeRequest('post', url, data);
-        return response;
+        return response?.data;
     }
     
 
-    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<any> {
+    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSubcharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
         const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" } ] };
         const response = await this.makeRequest('post', url, data);
-        return response;
+        return response?.data;
     }
     
 
-    public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<any> {
+    public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSQC> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
         const response = await this.makeRequest('post', url);
-        return response;
+        return response?.data;
     }
 }
