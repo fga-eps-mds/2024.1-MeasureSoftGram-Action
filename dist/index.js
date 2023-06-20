@@ -13183,7 +13183,7 @@ async function run() {
             pageSize: 500,
         });
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
-        const result = await service.run(requestService);
+        const result = await service.calculateResults(requestService);
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         if (!pull_request) {
@@ -13388,7 +13388,7 @@ class Service {
         console.log('SQC: \n', data_sqc);
         return { data_characteristics, data_sqc };
     }
-    async run(requestService) {
+    async calculateResults(requestService) {
         this.logRepoInfo();
         const listOrganizations = await requestService.listOrganizations();
         const orgId = await this.checkEntityExists(listOrganizations.results, this.owner);

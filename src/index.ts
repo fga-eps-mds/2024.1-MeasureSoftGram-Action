@@ -24,7 +24,7 @@ export async function run() {
     })
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
-    const result = await service.run(requestService)
+    const result = await service.calculateResults(requestService)
 
     const octokit = github.getOctokit(githubToken);
     const { pull_request } = github.context.payload;
@@ -35,7 +35,7 @@ export async function run() {
     }
 
     console.log('Creating comment');
-    const githubComment = new GithubComment()
+    const githubComment = new GithubComment();
     const message = githubComment.createMessage(result);
     
     await githubComment.createOrUpdateComment(pull_request.number, message, octokit);

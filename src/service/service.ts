@@ -13,7 +13,6 @@ export interface CalculatedMsgram {
 export default class Service {
     private repo: string;
     private owner: string;
-    private requestService: any;
     private currentDate: Date;
     private productName: string;
     private metrics: MetricsResponseAPI;
@@ -90,7 +89,7 @@ export default class Service {
         return { data_characteristics, data_sqc };
     }
 
-    public async run(requestService: RequestService) {
+    public async calculateResults(requestService: RequestService) {
         this.logRepoInfo();
         const listOrganizations = await requestService.listOrganizations();
         const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);

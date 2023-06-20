@@ -1,5 +1,13 @@
 import * as github from '@actions/github';
+
 import { CalculatedMsgram } from '../service/service';
+
+interface Comment {
+    user: {
+        login: string;
+    };
+    body: string;
+}
 
 export default class GithubComment {
     public createMessage(result: Array<CalculatedMsgram>): string {
@@ -18,7 +26,7 @@ export default class GithubComment {
 
         return message;
     }
-
+    
     public async createOrUpdateComment(pullRequestNumber: number, message: string, octokit: any) {
         // Check if a comment already exists on the pull request
         const { data: comments } = await octokit.rest.issues.listComments({
@@ -28,7 +36,7 @@ export default class GithubComment {
         const actionUser = "github-actions[bot]"
         
         const existingComment = comments.find(
-            (comment: any) => {
+            (comment: Comment) => {
                 return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
             }
         );

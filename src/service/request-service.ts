@@ -7,7 +7,7 @@ export interface Organization {
     key: string;
     description: string;
     products: Array<string>;
-    actions: any;
+    actions: unknown;
 }
 
 export interface Product {
@@ -18,7 +18,7 @@ export interface Product {
     organization: string;
     description: string;
     repositories: Array<string>;
-    actions: any;
+    actions: unknown;
 }
 
 export interface Repository {
@@ -28,8 +28,8 @@ export interface Repository {
     key: string;
     description: string;
     product: string;
-    latest_values: any;
-    historical_values: any;
+    latest_values: unknown;
+    historical_values: unknown;
     actions: unknown;
 }
 
