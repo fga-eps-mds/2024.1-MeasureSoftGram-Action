@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 import { Info } from './utils';
 
-export interface MeasuresResponseAPI {
+export interface MetricsResponseAPI {
   paging: {
       pageIndex: number
       pageSize: number
@@ -15,15 +15,15 @@ export interface MeasuresResponseAPI {
       qualifier: string
       measures: [unknown]
   },
-  components: {
+  components: [{
       id: string
       key: string
       name: string
       qualifier: string
       path: string
       language: string
-      measures: [unknown]
-  },
+      measures: unknown
+  }],
 }
 
 export default class Sonarqube {
@@ -31,7 +31,7 @@ export default class Sonarqube {
   public host: string
   private token: string
   public project: {
-    projectKey: string
+    sonarProjectKey: string
   }
   public sonarMetrics = [
       'files',
@@ -57,7 +57,7 @@ export default class Sonarqube {
     const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
 
     console.log(`SonarQube host: ${this.host}`)
-    console.log(`SonarQube project: ${this.project.projectKey}`)
+    console.log(`SonarQube project: ${this.project.sonarProjectKey}`)
 
     this.http = axios.create({
         baseURL: this.host,
@@ -68,15 +68,19 @@ export default class Sonarqube {
     })
   }
 
-  public getMeasures = async ({
-    pageSize
-  }: {
-      pageSize: number
-    }): Promise<MeasuresResponseAPI> => {
+  public getMeasures = async ({pageSize, pullRequestNumber}: {
+      pageSize: number,
+      pullRequestNumber: number | null
+    }): Promise<MetricsResponseAPI> => {
     try {
-      const response = await this.http.get<MeasuresResponseAPI>(
-        `/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
-      )
+      let sonar_url = `/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
+
+      if (pullRequestNumber) {
+        sonar_url += `&pullRequest=${pullRequestNumber}`;
+      }
+      console.log(`SonarQube URL: ${sonar_url}`)
+
+      const response = await this.http.get<MetricsResponseAPI>(sonar_url);
 
       if (response.status !== 200 || !response.data) {
         throw new Error(

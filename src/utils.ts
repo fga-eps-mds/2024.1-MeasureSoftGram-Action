@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 
 export interface Info {
     project: {
-        projectKey: string
+        sonarProjectKey: string
     }
     host: string
     token: string
@@ -11,11 +11,11 @@ export interface Info {
 export function getInfo(repo: { owner: string; repo: string }): Info {
     return {
         project: {
-            projectKey: core.getInput('projectKey')
-                ? core.getInput('projectKey')
+            sonarProjectKey: core.getInput('sonarProjectKey')
+                ? core.getInput('sonarProjectKey')
                 : `${repo.owner}_${repo.repo}`,
         },
         host: core.getInput('host'),
-        token: core.getInput('token'),
+        token: core.getInput('sonarToken'),
     }
 }

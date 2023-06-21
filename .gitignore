@@ -6,3 +6,5 @@ yarn-error.log
 # testing
 /coverage
 coverage.xml
+
+.env
