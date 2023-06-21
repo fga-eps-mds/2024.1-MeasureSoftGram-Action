@@ -29,26 +29,22 @@ jobs:
         uses: ./ # Usa uma ação no diretório raiz
         id: msgram
         with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          sonarProjectKey: "<proprietário do repositorio>_<nome do repositório>"
-          msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }}
-          productName: "<Nome do produto>"
+          githubToken: ${{ secrets.GITHUB_TOKEN }} # Token do GitHub
+          sonarProjectKey: "" # (opcional) Chave do projeto no SonarQube
+          msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }} # Token para acessar o serviço MeasureSoftGram
+          productName: "" # Nome do produto
 ```
 
 ## Entradas
 
 | entrada | obrigatório | descrição |
 | ------- | ----------- | --------- |
-| `host` | não | URL do servidor SonarQube. A url padrão é 'https://sonarcloud.io'. |
-| `sonartoken` | não | Token do SonarQube. Talvez isso seja necessário caso o repositorio seja privado. |
-| `sonarProjectKey` | não | Chave do projeto no SonarQube. A chave padrão é coletada a partir das informações coletadas do repositorio no github '<proprietário do repositorio>_<nome do repositório>'. |
 | `githubToken` | sim | Token do GitHub. Mais informações em [Token do GitHub](https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret) |
-| `productName` | sim | Nome do produto |
+| `sonarProjectKey` | não | Chave do projeto no SonarQube. A chave padrão é coletada a partir das informações coletadas do repositorio no github '<proprietário do repositorio>_<nome do repositório>'. |
 | `msgramServiceToken` | sim | Token para acessar o serviço MeasureSoftGram |
+| `productName` | sim | Nome do produto |
 
-Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credencia
-
-is de forma segura.
+Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
 
 ## Roadmap
 
