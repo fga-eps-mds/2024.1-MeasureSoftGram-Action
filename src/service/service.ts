@@ -47,7 +47,7 @@ export default class Service {
         }
     }
 
-    public async checkReleaseExists(listReleases: Array<ResponseListReleases>, orgId: number, productId: number): Promise<void> {
+    public async checkReleaseExists(listReleases: Array<ResponseListReleases>): Promise<void> {
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;
@@ -101,7 +101,7 @@ export default class Service {
         const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
 
         const listReleases = await requestService.listReleases(orgId, productId);
-        await this.checkReleaseExists(listReleases, orgId, productId);
+        await this.checkReleaseExists(listReleases);
         const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {

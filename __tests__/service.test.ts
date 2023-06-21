@@ -38,7 +38,7 @@ describe('Create message Tests', () => {
         const listReleases = bodyListReleaseResponse;
 
 
-        await expect(service.checkReleaseExists(listReleases, orgId, productId)).resolves.not.toThrowError();
+        await expect(service.checkReleaseExists(listReleases)).resolves.not.toThrowError();
     });
 
     test('should throw an error if there is no ongoing release', async () => {
@@ -47,7 +47,7 @@ describe('Create message Tests', () => {
         const service = new Service(repositoryName, owner, 'productName', metrics, nextMonth);
         const listReleases = bodyListReleaseResponse;
 
-        await expect(service.checkReleaseExists(listReleases, orgId, productId)).rejects.toThrowError("No release is happening on 2023-07-19.");
+        await expect(service.checkReleaseExists(listReleases)).rejects.toThrowError("No release is happening on 2023-07-19.");
     });
 
     it('should return the correct result when running the function to create metrics ', async () => {
