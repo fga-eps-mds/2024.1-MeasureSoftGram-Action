@@ -17,7 +17,7 @@ describe('getInfo', () => {
     // Mocking core.getInput calls
     mockedCore.getInput.mockImplementation((inputName: string) => {
       switch(inputName) {
-        case 'projectKey': return 'mockProjectKey';
+        case 'sonarProjectKey': return 'mocksonarProjectKey';
         case 'host': return 'mockHost';
         case 'sonarToken': return 'mockToken';
         default: return '';
@@ -25,7 +25,7 @@ describe('getInfo', () => {
     });
 
     const expectedInfo: Info = {
-      project: { projectKey: 'mockProjectKey' },
+      project: { sonarProjectKey: 'mocksonarProjectKey' },
       host: 'mockHost',
       token: 'mockToken',
     };
@@ -33,7 +33,7 @@ describe('getInfo', () => {
     expect(getInfo(repo)).toEqual(expectedInfo);
   });
 
-  test('should use default projectKey if not provided', () => {
+  test('should use default sonarProjectKey if not provided', () => {
     const repo = { owner: 'testOwner', repo: 'testRepo' };
 
     // Mocking core.getInput calls
@@ -46,7 +46,7 @@ describe('getInfo', () => {
     });
 
     const expectedInfo: Info = {
-      project: { projectKey: `${repo.owner}_${repo.repo}` },
+      project: { sonarProjectKey: `${repo.owner}_${repo.repo}` },
       host: 'mockHost',
       token: 'mockToken',
     };

@@ -16,7 +16,7 @@ describe('Sonarqube', () => {
     const info: Info = {
       host: 'http://my-sonarqube-instance.com',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
       token: ''
     };
@@ -29,7 +29,7 @@ describe('Sonarqube', () => {
   test('Constructor should use default host if no host provided', () => {
     const info: Info = {
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
       host: '',
       token: ''
@@ -45,7 +45,7 @@ describe('Sonarqube', () => {
       host: 'http://localhost:9000',
       token: '123456',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
     };
 
@@ -67,7 +67,7 @@ describe('Sonarqube', () => {
     const info: Info = {
       host: 'http://localhost:9000',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
       token: ''
     };
@@ -97,7 +97,7 @@ describe('Sonarqube', () => {
       host: 'http://localhost:9000',
       token: '123456',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
     };
 
@@ -120,7 +120,7 @@ describe('Sonarqube', () => {
     mockedAxios.get.mockImplementationOnce(async (url, options) => {
       console.log(`URL: ${url}`);
       console.log(`Options: ${JSON.stringify(options)}`);
-      if (url === `/api/measures/component_tree?component=${info.project.projectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=500`) {
+      if (url === `/api/measures/component_tree?component=${info.project.sonarProjectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=500`) {
         return Promise.resolve(measuresResponse);
       }
       return Promise.reject('Unexpected URL or options');
@@ -133,7 +133,7 @@ describe('Sonarqube', () => {
     try {
       const measures = await sonarqube.getMeasures({ pageSize });
       expect(measures).toBe(measuresResponse.data);
-      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/measures/component_tree?component=${info.project.projectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=${pageSize}`);
+      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/measures/component_tree?component=${info.project.sonarProjectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=${pageSize}`);
     } catch (error) {
       console.log('Error in test: ', error);
       throw error;
@@ -145,7 +145,7 @@ describe('Sonarqube', () => {
       host: 'http://localhost:9000',
       token: '123456',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
     };
 
@@ -165,7 +165,7 @@ describe('Sonarqube', () => {
       host: 'http://localhost:9000',
       token: '123456',
       project: {
-        projectKey: 'projectKey',
+        sonarProjectKey: 'sonarProjectKey',
       },
     };
   

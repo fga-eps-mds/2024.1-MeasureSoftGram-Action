@@ -13456,7 +13456,7 @@ class Sonarqube {
         ];
         this.getMeasures = async ({ pageSize }) => {
             try {
-                const response = await this.http.get(`/api/measures/component_tree?component=${this.project.projectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`);
+                const response = await this.http.get(`/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`);
                 if (response.status !== 200 || !response.data) {
                     throw new Error('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
                 }
@@ -13471,7 +13471,7 @@ class Sonarqube {
         this.project = info.project;
         const tokenb64 = Buffer.from(`${this.token}:`).toString('base64');
         console.log(`SonarQube host: ${this.host}`);
-        console.log(`SonarQube project: ${this.project.projectKey}`);
+        console.log(`SonarQube project: ${this.project.sonarProjectKey}`);
         this.http = axios_1.default.create({
             baseURL: this.host,
             timeout: 10000,
@@ -13520,8 +13520,8 @@ const core = __importStar(__nccwpck_require__(8834));
 function getInfo(repo) {
     return {
         project: {
-            projectKey: core.getInput('projectKey')
-                ? core.getInput('projectKey')
+            sonarProjectKey: core.getInput('sonarProjectKey')
+                ? core.getInput('sonarProjectKey')
                 : `${repo.owner}_${repo.repo}`,
         },
         host: core.getInput('host'),
