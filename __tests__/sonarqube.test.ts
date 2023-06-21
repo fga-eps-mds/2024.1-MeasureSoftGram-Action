@@ -101,6 +101,9 @@ describe('Sonarqube', () => {
       },
     };
 
+    const pageSize = 500;
+    const sonar_url = `/api/measures/component_tree?component=${info.project.sonarProjectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=${pageSize}`;
+
     const measuresResponse = { 
       data: { 
         paging: {
@@ -120,7 +123,7 @@ describe('Sonarqube', () => {
     mockedAxios.get.mockImplementationOnce(async (url, options) => {
       console.log(`URL: ${url}`);
       console.log(`Options: ${JSON.stringify(options)}`);
-      if (url === `/api/measures/component_tree?component=${info.project.sonarProjectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=500`) {
+      if (url === `sonar_url` || url === `${sonar_url}&pullRequest=1`) {
         return Promise.resolve(measuresResponse);
       }
       return Promise.reject('Unexpected URL or options');
@@ -129,11 +132,13 @@ describe('Sonarqube', () => {
     mockedAxios.create.mockImplementationOnce(() => mockedAxios);
 
     const sonarqube = new Sonarqube(info);
-    const pageSize = 500;
+    
     try {
-      const measures = await sonarqube.getMeasures({ pageSize });
+      const measures = await sonarqube.getMeasures({ pageSize, pullRequestNumber: null });
       expect(measures).toBe(measuresResponse.data);
-      expect(mockedAxios.get).toHaveBeenCalledWith(`/api/measures/component_tree?component=${info.project.sonarProjectKey}&metricKeys=files,functions,complexity,comment_lines_density,duplicated_lines_density,coverage,ncloc,tests,test_errors,test_failures,test_execution_time,security_rating,test_success_density,reliability_rating&ps=${pageSize}`);
+      expect(mockedAxios.get).toHaveBeenCalledWith(sonar_url);
+      await sonarqube.getMeasures({ pageSize, pullRequestNumber: 1 });
+      expect(mockedAxios.get).toHaveBeenCalledWith(`${sonar_url}&pullRequest=1`);
     } catch (error) {
       console.log('Error in test: ', error);
       throw error;
@@ -157,7 +162,7 @@ describe('Sonarqube', () => {
 
     const sonarqube = new Sonarqube(info);
     const pageSize = 500;
-    await expect(sonarqube.getMeasures({ pageSize })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
+    await expect(sonarqube.getMeasures({ pageSize, pullRequestNumber: null })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
   });
 
   test('getMeasures should handle non-200 status codes', async () => {
@@ -180,7 +185,7 @@ describe('Sonarqube', () => {
   
     const sonarqube = new Sonarqube(info);
     const pageSize = 500;
-    await expect(sonarqube.getMeasures({ pageSize })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
+    await expect(sonarqube.getMeasures({ pageSize, pullRequestNumber: null })).rejects.toThrow('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
   });
   
 });

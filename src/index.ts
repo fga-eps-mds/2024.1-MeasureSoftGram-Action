@@ -19,15 +19,16 @@ export async function run() {
     const githubToken = core.getInput('githubToken', {required: true});
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
 
+    const octokit = github.getOctokit(githubToken);
+    const { pull_request } = github.context.payload;
+
     const metrics = await sonarqube.getMeasures({
       pageSize: 500,
+      pullRequestNumber: pull_request?.number || null,
     })
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
     const result = await service.calculateResults(requestService)
-
-    const octokit = github.getOctokit(githubToken);
-    const { pull_request } = github.context.payload;
 
     if (!pull_request) {
       console.log('No pull request found.');

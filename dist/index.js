@@ -13179,13 +13179,14 @@ async function run() {
         const requestService = new request_service_1.RequestService();
         const githubToken = core.getInput('githubToken', { required: true });
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
+        const octokit = github.getOctokit(githubToken);
+        const { pull_request } = github.context.payload;
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
+            pullRequestNumber: (pull_request === null || pull_request === void 0 ? void 0 : pull_request.number) || null,
         });
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
         const result = await service.calculateResults(requestService);
-        const octokit = github.getOctokit(githubToken);
-        const { pull_request } = github.context.payload;
         if (!pull_request) {
             console.log('No pull request found.');
             return;
@@ -13454,9 +13455,13 @@ class Sonarqube {
             'test_success_density',
             'reliability_rating',
         ];
-        this.getMeasures = async ({ pageSize }) => {
+        this.getMeasures = async ({ pageSize, pullRequestNumber }) => {
             try {
-                const response = await this.http.get(`/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`);
+                let sonar_url = `/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`;
+                if (pullRequestNumber) {
+                    sonar_url += `&pullRequest=${pullRequestNumber}`;
+                }
+                const response = await this.http.get(sonar_url);
                 if (response.status !== 200 || !response.data) {
                     throw new Error('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
                 }

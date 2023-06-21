@@ -68,15 +68,18 @@ export default class Sonarqube {
     })
   }
 
-  public getMeasures = async ({
-    pageSize
-  }: {
-      pageSize: number
+  public getMeasures = async ({pageSize, pullRequestNumber}: {
+      pageSize: number,
+      pullRequestNumber: number | null
     }): Promise<MetricsResponseAPI> => {
     try {
-      const response = await this.http.get<MetricsResponseAPI>(
-        `/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
-      )
+      let sonar_url = `/api/measures/component_tree?component=${this.project.sonarProjectKey}&metricKeys=${this.sonarMetrics.join(',')}&ps=${pageSize}`
+
+      if (pullRequestNumber) {
+        sonar_url += `&pullRequest=${pullRequestNumber}`;
+      }
+
+      const response = await this.http.get<MetricsResponseAPI>(sonar_url);
 
       if (response.status !== 200 || !response.data) {
         throw new Error(
