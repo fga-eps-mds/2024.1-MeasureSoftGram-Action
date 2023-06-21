@@ -24,7 +24,7 @@ export async function run() {
 
     const metrics = await sonarqube.getMeasures({
       pageSize: 500,
-      pullRequestNumber: pull_request?.number || null,
+      pullRequestNumber: pull_request?.number ?? null,
     })
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);

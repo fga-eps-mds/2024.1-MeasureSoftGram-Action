@@ -78,6 +78,7 @@ export default class Sonarqube {
       if (pullRequestNumber) {
         sonar_url += `&pullRequest=${pullRequestNumber}`;
       }
+      console.log(`SonarQube URL: ${sonar_url}`)
 
       const response = await this.http.get<MetricsResponseAPI>(sonar_url);
 

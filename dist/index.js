@@ -13169,6 +13169,7 @@ const request_service_1 = __nccwpck_require__(1874);
 const service_1 = __importDefault(__nccwpck_require__(841));
 const github_comment_1 = __importDefault(__nccwpck_require__(6617));
 async function run() {
+    var _a;
     try {
         console.log('Starting action with Service');
         const { repo } = github.context;
@@ -13183,7 +13184,7 @@ async function run() {
         const { pull_request } = github.context.payload;
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
-            pullRequestNumber: (pull_request === null || pull_request === void 0 ? void 0 : pull_request.number) || null,
+            pullRequestNumber: (_a = pull_request === null || pull_request === void 0 ? void 0 : pull_request.number) !== null && _a !== void 0 ? _a : null,
         });
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
         const result = await service.calculateResults(requestService);
@@ -13461,6 +13462,7 @@ class Sonarqube {
                 if (pullRequestNumber) {
                     sonar_url += `&pullRequest=${pullRequestNumber}`;
                 }
+                console.log(`SonarQube URL: ${sonar_url}`);
                 const response = await this.http.get(sonar_url);
                 if (response.status !== 200 || !response.data) {
                     throw new Error('Error getting project measures from SonarQube. Please make sure you provided the host and token inputs.');
