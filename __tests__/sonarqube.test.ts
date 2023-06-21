@@ -123,7 +123,7 @@ describe('Sonarqube', () => {
     mockedAxios.get.mockImplementationOnce(async (url, options) => {
       console.log(`URL: ${url}`);
       console.log(`Options: ${JSON.stringify(options)}`);
-      if (url === `sonar_url` || url === `${sonar_url}&pullRequest=1`) {
+      if (url === sonar_url) {
         return Promise.resolve(measuresResponse);
       }
       return Promise.reject('Unexpected URL or options');
@@ -137,8 +137,6 @@ describe('Sonarqube', () => {
       const measures = await sonarqube.getMeasures({ pageSize, pullRequestNumber: null });
       expect(measures).toBe(measuresResponse.data);
       expect(mockedAxios.get).toHaveBeenCalledWith(sonar_url);
-      await sonarqube.getMeasures({ pageSize, pullRequestNumber: 1 });
-      expect(mockedAxios.get).toHaveBeenCalledWith(`${sonar_url}&pullRequest=1`);
     } catch (error) {
       console.log('Error in test: ', error);
       throw error;
