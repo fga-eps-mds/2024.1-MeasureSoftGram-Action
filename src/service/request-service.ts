@@ -215,8 +215,8 @@ export class RequestService {
     }
     
 
-    public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSQC> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
+    public async calculateTSQMI(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateTSQMI> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
         const response = await this.makeRequest('post', url);
         return response?.data;
     }
