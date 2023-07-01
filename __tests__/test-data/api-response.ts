@@ -31,7 +31,7 @@ export const bodyCalculateSubcharacteristicsResponse = [
   },
 ]
 
-export const bodyCalculateSQCResponse = {
+export const bodyCalculateTSQMIResponse = {
   id: 2,
   value: 0.8359399436161667,
   created_at: '2023-06-20T08:04:24.045715-03:00',

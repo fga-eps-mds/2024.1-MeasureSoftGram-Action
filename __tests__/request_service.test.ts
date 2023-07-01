@@ -4,7 +4,7 @@ import MockAdapter from 'axios-mock-adapter';
 import {
   bodyCalculateCharacteristicsResponse,
   bodyCalculateSubcharacteristicsResponse,
-  bodyCalculateSQCResponse,
+  bodyCalculateTSQMIResponse,
   bodyCalculateMeasuresResponse,
   bodyInsertMetricsResponse
 } from './test-data/api-response';
@@ -144,19 +144,19 @@ describe('RequestService', () => {
     expect(response).toEqual(bodyCalculateSubcharacteristicsResponse);
   });
 
-  test('should successfully calculate SQC', async () => {
+  test('should successfully calculate TSQMI', async () => {
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
 
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`)
-      .reply(200, bodyCalculateSQCResponse);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`)
+      .reply(200, bodyCalculateTSQMIResponse);
 
-    const response = await service.calculateSQC(orgId, productId, repoId);
+    const response = await service.calculateTSQMI(orgId, productId, repoId);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
-    expect(response).toEqual(bodyCalculateSQCResponse);
+    expect(response).toEqual(bodyCalculateTSQMIResponse);
   });
 
   test('should throw error in case API call fails', async () => {

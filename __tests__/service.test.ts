@@ -1,6 +1,6 @@
 import { RequestService } from '../src/service/request-service';
 import Service from '../src/service/service';
-import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateSQCResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics } from './test-data/api-response';
+import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics } from './test-data/api-response';
 
 describe('Create message Tests', () => {
     const owner = 'fga-eps-mds';
@@ -55,7 +55,7 @@ describe('Create message Tests', () => {
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
         requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
         requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
-        requestService.calculateSQC = jest.fn().mockResolvedValue(bodyCalculateSQCResponse);
+        requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
 
         const result = await service.createMetrics(requestService, metrics, orgId, productId, repositoryId);
 
@@ -68,11 +68,11 @@ describe('Create message Tests', () => {
         expect(requestService.calculateMeasures).toHaveBeenCalledWith(orgId, productId, repositoryId);
         expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
         expect(requestService.calculateSubCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
-        expect(requestService.calculateSQC).toHaveBeenCalledWith(orgId, productId, repositoryId);
+        expect(requestService.calculateTSQMI).toHaveBeenCalledWith(orgId, productId, repositoryId);
 
         expect(result).toEqual({
             data_characteristics: bodyCalculateCharacteristicsResponse,
-            data_sqc: bodyCalculateSQCResponse
+            data_tsqmi: bodyCalculateTSQMIResponse
         });
     });
 
@@ -81,7 +81,7 @@ describe('Create message Tests', () => {
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
         requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
         requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
-        requestService.calculateSQC = jest.fn().mockResolvedValue(bodyCalculateSQCResponse);
+        requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
         requestService.listOrganizations = jest.fn().mockResolvedValue(bodyListOrganizationsResponse);
         requestService.listProducts = jest.fn().mockResolvedValue(bodyListProductsResponse);
         requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
@@ -104,9 +104,9 @@ describe('Create message Tests', () => {
                 ],
                 "measures": [],
                 "repository": [],
-                "sqc": [
+                "tsqmi": [
                     { 
-                        "key": "sqc", 
+                        "key": "tsqmi", 
                         "value": 0.8359399436161667 
                     }], 
                     "subcharacteristics": [], 
