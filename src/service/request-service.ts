@@ -102,7 +102,7 @@ export interface ResponseCalculateMeasures {
     }
 }
 
-export interface ResponseCalculateSQC {
+export interface ResponseCalculateTSQMI {
     id: number;
     value: number;
     created_at: string;
@@ -135,6 +135,8 @@ export class RequestService {
             url,
             data,
         };
+
+        axios.defaults.timeout = 50000; // await for heroku to wake up
 
         let response: AxiosResponse | null = null;
 
