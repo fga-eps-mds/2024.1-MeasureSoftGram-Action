@@ -102,7 +102,7 @@ export interface ResponseCalculateMeasures {
     }
 }
 
-export interface ResponseCalculateSQC {
+export interface ResponseCalculateTSQMI {
     id: number;
     value: number;
     created_at: string;
@@ -135,6 +135,8 @@ export class RequestService {
             url,
             data,
         };
+
+        axios.defaults.timeout = 50000; // await for heroku to wake up
 
         let response: AxiosResponse | null = null;
 
@@ -213,8 +215,8 @@ export class RequestService {
     }
     
 
-    public async calculateSQC(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSQC> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
+    public async calculateTSQMI(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateTSQMI> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
         const response = await this.makeRequest('post', url);
         return response?.data;
     }

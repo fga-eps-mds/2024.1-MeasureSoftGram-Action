@@ -27,15 +27,15 @@ describe('Create message Tests', () => {
             measures: [{ key: 'mockMeasure', value: 100 }],
             subcharacteristics: [{ key: 'mockSubCharacteristic', value: 10 }],
             characteristics: [{ key: 'mockCharacteristic', value: 20 }],
-            sqc: [{ key: 'mockSqc', value: 30 }],
+            tsqmi: [{ key: 'mockTsqmi', value: 30 }],
         };
         
         const githubComment = new GithubComment();
         const result = githubComment.createMessage([mockData]);
     
         expect(result).toContain('## MeasureSoftGram Analysis Results');
-        expect(result).toContain('### SQC Values');
-        expect(result).toContain(mockData.sqc[0].value.toFixed(2));
+        expect(result).toContain('### TSQMI Values');
+        expect(result).toContain(mockData.tsqmi[0].value.toFixed(2));
         expect(result).toContain('### Characteristics Values');
         expect(result).toContain(`* **${mockData.characteristics[0].key}**: ${mockData.characteristics[0].value.toFixed(2)}`);
     });

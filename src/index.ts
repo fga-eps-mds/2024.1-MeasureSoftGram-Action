@@ -9,6 +9,9 @@ import GithubComment from './github/github-comment';
 
 export async function run() {
   try {
+    if (!github.context.payload.pull_request) return;
+    if (!github.context.payload.pull_request.merged) return;
+
     console.log('Starting action with Service');
     const { repo } = github.context;
     const currentDate = new Date();
@@ -24,7 +27,7 @@ export async function run() {
 
     const metrics = await sonarqube.getMeasures({
       pageSize: 500,
-      pullRequestNumber: pull_request?.number ?? null,
+      pullRequestNumber: null,
     })
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);

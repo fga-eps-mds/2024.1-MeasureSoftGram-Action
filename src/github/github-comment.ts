@@ -14,9 +14,9 @@ export default class GithubComment {
         const message = `
       ## MeasureSoftGram Analysis Results
   
-      ### SQC Values
+      ### TSQMI Values
   
-      ${result[0].sqc[0].value.toFixed(2)}
+      ${result[0].tsqmi[0].value.toFixed(2)}
   
       ### Characteristics Values
   

@@ -13095,9 +13095,9 @@ class GithubComment {
         const message = `
       ## MeasureSoftGram Analysis Results
   
-      ### SQC Values
+      ### TSQMI Values
   
-      ${result[0].sqc[0].value.toFixed(2)}
+      ${result[0].tsqmi[0].value.toFixed(2)}
   
       ### Characteristics Values
   
@@ -13169,8 +13169,11 @@ const request_service_1 = __nccwpck_require__(1874);
 const service_1 = __importDefault(__nccwpck_require__(841));
 const github_comment_1 = __importDefault(__nccwpck_require__(6617));
 async function run() {
-    var _a;
     try {
+        if (!github.context.payload.pull_request)
+            return;
+        if (!github.context.payload.pull_request.merged)
+            return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
@@ -13184,7 +13187,7 @@ async function run() {
         const { pull_request } = github.context.payload;
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
-            pullRequestNumber: (_a = pull_request === null || pull_request === void 0 ? void 0 : pull_request.number) !== null && _a !== void 0 ? _a : null,
+            pullRequestNumber: null,
         });
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
         const result = await service.calculateResults(requestService);
@@ -13248,6 +13251,7 @@ class RequestService {
             url,
             data,
         };
+        axios_1.default.defaults.timeout = 50000; // await for heroku to wake up
         let response = null;
         try {
             response = await (0, axios_1.default)(config);
@@ -13314,8 +13318,8 @@ class RequestService {
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
-    async calculateSQC(orgId, productId, repoId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/sqc/`;
+    async calculateTSQMI(orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
         const response = await this.makeRequest('post', url);
         return response === null || response === void 0 ? void 0 : response.data;
     }
@@ -13386,9 +13390,9 @@ class Service {
         console.log('Calculated characteristics: \n', data_characteristics);
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
         console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
-        const data_sqc = await requestService.calculateSQC(orgId, productId, repositoryId);
-        console.log('SQC: \n', data_sqc);
-        return { data_characteristics, data_sqc };
+        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
+        console.log('TSQMI: \n', data_tsqmi);
+        return { data_characteristics, data_tsqmi };
     }
     async calculateResults(requestService) {
         this.logRepoInfo();
@@ -13400,16 +13404,16 @@ class Service {
         const repositoryId = await this.checkEntityExists(listRepositories.results, this.repo);
         const listReleases = await requestService.listReleases(orgId, productId);
         await this.checkReleaseExists(listReleases);
-        const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
         const characteristics = data_characteristics.map((data) => {
             return {
                 key: data.key,
                 value: data.latest.value
             };
         });
-        const sqc = [{
-                key: 'sqc',
-                value: data_sqc.value
+        const tsqmi = [{
+                key: 'tsqmi',
+                value: data_tsqmi.value
             }];
         const result = [{
                 repository: [],
@@ -13417,7 +13421,7 @@ class Service {
                 measures: [],
                 subcharacteristics: [],
                 characteristics: characteristics,
-                sqc: sqc
+                tsqmi: tsqmi
             }];
         console.log('Result: \n', JSON.stringify(result));
         return result;

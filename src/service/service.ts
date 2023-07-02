@@ -7,7 +7,7 @@ export interface CalculatedMsgram {
     measures: { key: string; value: number }[];
     subcharacteristics: { key: string; value: number }[];
     characteristics: { key: string; value: number }[];
-    sqc: { key: string; value: number }[];
+    tsqmi: { key: string; value: number }[];
 }
 
 export default class Service {
@@ -83,10 +83,10 @@ export default class Service {
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
         console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
 
-        const data_sqc = await requestService.calculateSQC(orgId, productId, repositoryId);
-        console.log('SQC: \n', data_sqc);
+        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
+        console.log('TSQMI: \n', data_tsqmi);
 
-        return { data_characteristics, data_sqc };
+        return { data_characteristics, data_tsqmi };
     }
 
     public async calculateResults(requestService: RequestService) {
@@ -102,7 +102,7 @@ export default class Service {
 
         const listReleases = await requestService.listReleases(orgId, productId);
         await this.checkReleaseExists(listReleases);
-        const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {
@@ -111,9 +111,9 @@ export default class Service {
             };
         });
 
-        const sqc = [{
-            key: 'sqc',
-            value: data_sqc.value
+        const tsqmi = [{
+            key: 'tsqmi',
+            value: data_tsqmi.value
         }];
 
         const result: Array<CalculatedMsgram> = [{
@@ -122,7 +122,7 @@ export default class Service {
             measures: [],
             subcharacteristics: [],
             characteristics: characteristics,
-            sqc: sqc
+            tsqmi: tsqmi
         }];
 
         console.log('Result: \n', JSON.stringify(result));
