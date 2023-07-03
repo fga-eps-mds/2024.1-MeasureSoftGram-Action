@@ -27,8 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Rodar a action do MeasureSoftGram
-        uses: ./ # Usa uma ação no diretório raiz
+        - name: Action MeasureSoftGram
+          uses: fga-eps-mds/2023-1-MeasureSoftGram-Action@v2.1    
         id: msgram
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }} # Token do GitHub
