@@ -1,15 +1,17 @@
-# 2023-1-MeasureSoftGram-Action
+# Ação do GitHub para Análise de Código com MeasureSoftGram
 
-Esta é uma ação do Github que usa o serviço [MeasureSoftGram](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Service), baseando-se nos resultados dos testes de ferramentas de analise de codigo como o Sonarqube, e adiciona os resultados como anotações em seus pull requests.
+Use essa Ação do GitHub para realizar uma análise de código com o [MeasureSoftGram](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Service). A ferramenta gera resultados de análise de código, que são enviador ao servidor web e mostrado em formas de graficos quando seus pull requests para a main (ou branch escolhida) sejam fechados.
 
-**Nota:** Esta ação é destinada a ser executada quando um pull request é feito para as branches main ou develop.
+<img src="./assets/images/MeasureSoftwareGram.png">
 
-## Sobre o MeasureSoftGram
-O MeasureSoftGram é um robusto sistema de gerenciamento e avaliação de qualidade de software. Ele atua como uma ferramenta de apoio ao planejamento e comparação das qualidades nas releases, fornecendo uma análise abrangente da qualidade do produto e do processo. Ele retorna valores das métricas analisadas de software e avalia a qualidade a partir de modelos algébricos, analisando múltiplos atributos de qualidade. O MeasureSoftGram é um projeto de software livre, com foco em prover uma ferramenta acessível e eficiente para a gestão da qualidade do software.
+O MeasureSoftGram é uma ferramenta robusta para gestão e avaliação de qualidade de software. Ele suporta múltiplos atributos de qualidade e retorna métricas analisadas de software com base em modelos algébricos. O MeasureSoftGram é completamente gratuito para projetos open-source.
 
-## Exemplo de Saída
+## Pré-requisitos
 
-![Exemplo de Saída](./assets/images/msgram-msg.png)
+* Ter uma conta no GitHub. [Crie uma gratuitamente agora](https://github.com/signup) caso ainda não possua!
+* O repositório para análise está configurado no MeasureSoftGram.
+* Ter uma release em andamento criado no [web](https://2023-1-measure-soft-gram-front.vercel.app/)
+* Ter um token de acesso ao MeasureSoftGram. [Crie um gratuitamente agora](https://2023-1-measure-soft-gram-front.vercel.app/) caso ainda não possua!
 
 ## Uso
 Para utilizar o MeasureSoftGram no seu repositório GitHub, crie um novo fluxo de trabalho do GitHub Actions (por exemplo, `msgram-analysis.yml`) no diretório `.github/workflows`. No novo arquivo, insira o seguinte código:
@@ -18,7 +20,7 @@ Para utilizar o MeasureSoftGram no seu repositório GitHub, crie um novo fluxo d
 on:
   pull_request:
     branches: [ main ]
-
+    types: [ closed ]
 jobs:
   msgram_job:
     runs-on: ubuntu-latest
@@ -45,6 +47,13 @@ jobs:
 | `productName` | sim | Nome do produto |
 
 Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
+
+
+## Resultados da análise no pull request
+
+Os resultados são adicionados ao website do MeasureSoftwareGram e exibidos nesse gráfico:
+
+![Resultado Web](./assets/images/resultado_msgram.png)
 
 ## Roadmap
 
