@@ -1,6 +1,6 @@
-# Ação do GitHub para Análise de Código com MeasureSoftGram
+# Action do GitHub para Análise de Código com MeasureSoftGram
 
-Use essa Ação do GitHub para realizar uma análise de código com o [MeasureSoftGram](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Service). A ferramenta gera resultados de análise de código, que são enviador ao servidor web e mostrado em formas de graficos quando seus pull requests para a main (ou branch escolhida) sejam fechados.
+Use essa action do GitHub para realizar uma análise de código com o [MeasureSoftGram](https://github.com/fga-eps-mds/2023-1-MeasureSoftGram-Service). A ferramenta gera resultados de análise de código, que são enviador ao servidor web e mostrado em formas de graficos quando seus pull requests para a main (ou branch escolhida) sejam fechados.
 
 <img src="./assets/images/MeasureSoftwareGram.png">
 
