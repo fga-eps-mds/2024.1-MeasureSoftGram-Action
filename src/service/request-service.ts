@@ -168,6 +168,7 @@ export class RequestService {
 
     public async listProducts(orgId: number): Promise<ResponseListProducts> {
         const url = `${this.baseUrl}organizations/${orgId}/products/`;
+        console.log('URL DO PRODUTO ', url)
         const response =  await this.makeRequest('get', url);
         return response?.data;
     }
