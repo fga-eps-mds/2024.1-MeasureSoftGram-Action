@@ -93,10 +93,12 @@ export default class Service {
         this.logRepoInfo();
         const listOrganizations = await requestService.listOrganizations();
         const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
+        console.log('orgId ', orgId);
 
         const listProducts = await requestService.listProducts(orgId);
         const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
-
+        console.log('productId ', productId)
+        
         const listRepositories = await requestService.listRepositories(orgId, productId);
         const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
 
