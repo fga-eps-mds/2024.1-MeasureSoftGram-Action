@@ -139,11 +139,12 @@ export class RequestService {
         axios.defaults.timeout = 50000; // await for heroku to wake up
 
         let response: AxiosResponse | null = null;
-
+        console.log(config)
         try {
             response = await axios(config);
             console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response?.status}`);
         } catch (error: unknown) {
+            console.log('rota ', config.url, ' erro ', error)
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
                 console.error(`Failed to ${method} data to the API. ${axiosError.message}`);
