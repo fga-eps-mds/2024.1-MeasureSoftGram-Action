@@ -147,7 +147,7 @@ export class RequestService {
             console.log('rota ', config.url, ' erro ', error)
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                console.error(`Failed to ${method} data to the API. ${axiosError.message}`);
+                console.error(`Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}`);
             } else {
                 console.error('An unexpected error occurred.');
             }
