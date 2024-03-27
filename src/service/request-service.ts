@@ -109,7 +109,7 @@ export interface ResponseCalculateTSQMI {
 }
 
 export class RequestService {
-    private MSGRAM_SERVICE_HOST = 'https://measuresoft.herokuapp.com';
+    private MSGRAM_SERVICE_HOST = 'https://measuresoftgram-service-2023-2-0b266df334ad.herokuapp.com';
     private MSG_TOKEN = "'secret';"
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
@@ -139,14 +139,13 @@ export class RequestService {
         axios.defaults.timeout = 50000; // await for heroku to wake up
 
         let response: AxiosResponse | null = null;
-
         try {
             response = await axios(config);
             console.log(`Data ${method === 'get' ? 'received' : 'sent'}. Status code: ${response?.status}`);
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                console.error(`Failed to ${method} data to the API. ${axiosError.message}`);
+                console.error(`Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}`);
             } else {
                 console.error('An unexpected error occurred.');
             }
