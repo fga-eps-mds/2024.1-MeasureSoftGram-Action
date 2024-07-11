@@ -14,6 +14,6 @@ jobs:
         id: msgram
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          sonarProjectKey: "fga-eps-mds_2023-1-MeasureSoftGram-Action"
+          sonarProjectKey: "fga-eps-mds_2024.1-MeasureSoftGram-Action"
           msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }}
           productName: "MeasureSoftGram"
