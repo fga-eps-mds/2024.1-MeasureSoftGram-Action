@@ -14,6 +14,9 @@ inputs:
   githubToken:
     description: "Github token. https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret"
     required: true
+  usLabel: 
+    description: "Label to User Story"
+    required: false
   productName:
     description: "Product name"
     required: true
