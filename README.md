@@ -47,6 +47,8 @@ jobs:
 | `msgramServiceToken` | sim | Token para acessar o serviço MeasureSoftGram |
 | `productName` | sim | Nome do produto |
 | `workflowName` | não | Nome do do worflow de build da release |
+| `collectSonarqubeMetrics` | sim | Determina se serão coletadas métricas do Sonarqube |
+| `collectGithubMetrics` | sim | Determina se serão coletadas métricas do Github |
 
 Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
 
