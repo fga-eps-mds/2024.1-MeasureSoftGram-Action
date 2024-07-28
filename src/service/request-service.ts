@@ -51,8 +51,8 @@ export interface ResponseListReleases {
     id: number;
     release_name: string;
     start_at: string;
-    created_by: number;
     end_at: string;
+    created_by: number;
 }
 
 
@@ -178,9 +178,9 @@ export class RequestService {
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;    
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        return response?.data.results;
     }
     
 

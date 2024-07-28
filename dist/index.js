@@ -13387,9 +13387,9 @@ class RequestService {
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async listReleases(orgId, productId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;
         const response = await this.makeRequest('get', url);
-        return response === null || response === void 0 ? void 0 : response.data;
+        return response === null || response === void 0 ? void 0 : response.data.results;
     }
     async insertMetrics(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
