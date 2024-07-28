@@ -45,7 +45,7 @@ export default class Service {
         }
     }
 
-    public async checkReleaseExists(requestService: RequestService): Promise<string> {
+    public async checkReleaseExists(requestService: RequestService): Promise<{startAt: string, orgId: number, productId: number, repositoryId: number}> {
         const listOrganizations = await requestService.listOrganizations();
         const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
         console.log('orgId ', orgId);
@@ -79,7 +79,7 @@ export default class Service {
         } else {
             console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
         }
-        return responseStart;
+        return {startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId}
     }
 
     public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
@@ -102,9 +102,9 @@ export default class Service {
         return { data_characteristics, data_tsqmi };
     }
 
-    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI) {
+    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {

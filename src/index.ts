@@ -23,8 +23,8 @@ export async function run() {
     const service = new Service(repo.repo, repo.owner, productName, currentDate);
     const requestService = new RequestService();
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
-    const beginDate = await service.checkReleaseExists(requestService); 
-    const githubInfo = getGitHubInfo(repo, beginDate)
+    const releaseData = await service.checkReleaseExists(requestService); 
+    const githubInfo = getGitHubInfo(repo, releaseData.startAt)
     const githubMeasure = new GitHubMeasure(githubInfo); 
     const sonarqube = new Sonarqube(info);
     
@@ -38,7 +38,7 @@ export async function run() {
 
     const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
 
-    const result = await service.calculateResults(requestService, metrics)
+    const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
 
     if (!pull_request) {
       console.log('No pull request found.');
