@@ -20,6 +20,9 @@ inputs:
   msgramServiceToken:
     required: true
     description: "Token to access the MeasureSoftGram service"
+  workflowName:
+    required: false
+    description: "Release build workflow name to collect CI feedback metric"
 runs:
   using: 'node16'
   main: 'dist/index.js'
