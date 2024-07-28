@@ -13447,6 +13447,7 @@ class Service {
         const listRepositories = await requestService.listRepositories(orgId, productId);
         const repositoryId = await this.checkEntityExists(listRepositories.results, this.repo);
         const listReleases = await requestService.listReleases(orgId, productId);
+        console.log(listReleases);
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
         let releaseId = null;
         let startAt = "";
