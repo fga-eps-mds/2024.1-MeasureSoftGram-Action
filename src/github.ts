@@ -102,7 +102,7 @@ export default class GithubAPIService {
       
       console.log(`github URL: ${githubClosedUrl}`)
   
-      if (closed_response.status !== 200 || !closed_response || total_response.status !== 200 || !total_response) {
+      if (!closed_response || !total_response) {
         throw new Error(
           'Error getting project measures from Github. Please make sure you provided and token inputs.'
         )
