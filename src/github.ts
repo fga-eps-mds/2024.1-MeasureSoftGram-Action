@@ -92,7 +92,7 @@ export default class GitHubMeasure {
     const response: GithubMetricsResponse = {
       metrics: []
     }
-    const baseUrl = `https://api.github.com/`
+    const baseUrl = `https://api.github.com`
     const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`
     const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
 
