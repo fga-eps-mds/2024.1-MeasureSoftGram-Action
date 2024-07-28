@@ -58,7 +58,6 @@ export default class Service {
         const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
     
         const listReleases: Array<ResponseListReleases> = await requestService.listReleases(orgId, productId);
-        console.log(listReleases)
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;

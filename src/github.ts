@@ -43,7 +43,6 @@ export default class GitHubMeasure {
   }
   private async getThroughput(
     baseUrl: string, 
-    token: string, 
     label: string | null, 
     beginDate: string
   ): Promise<{
@@ -53,10 +52,10 @@ export default class GitHubMeasure {
     let github_url = (state: string) : string => {
       return `${baseUrl}/issues?state=${state}&labels=${label}&since=${beginDate}`
     }
+    const closed_response = await this.http.get(github_url("closed"));
+    const total_response= await this.http.get(github_url("all")); 
     try {
       
-      const closed_response = await this.http.get(github_url("closed"));
-      const total_response= await this.http.get(github_url("all")); 
       console.log(`github URL: ${github_url}`)
   
       if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
@@ -81,7 +80,7 @@ export default class GitHubMeasure {
       metrics: []
     }
     const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`
-    const throughtput = await this.getThroughput(baseUrl, this.token, this.label, this.beginDate); 
+    const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
 
     if(throughtput){
       throughtput.forEach(githubmetric => response.metrics.push({

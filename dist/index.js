@@ -13077,7 +13077,7 @@ class GitHubMeasure {
                 metrics: []
             };
             const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`;
-            const throughtput = await this.getThroughput(baseUrl, this.token, this.label, this.beginDate);
+            const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             if (throughtput) {
                 throughtput.forEach(githubmetric => response.metrics.push({
                     name: githubmetric.name,
@@ -13105,13 +13105,13 @@ class GitHubMeasure {
             }
         });
     }
-    async getThroughput(baseUrl, token, label, beginDate) {
+    async getThroughput(baseUrl, label, beginDate) {
         let github_url = (state) => {
             return `${baseUrl}/issues?state=${state}&labels=${label}&since=${beginDate}`;
         };
+        const closed_response = await this.http.get(github_url("closed"));
+        const total_response = await this.http.get(github_url("all"));
         try {
-            const closed_response = await this.http.get(github_url("closed"));
-            const total_response = await this.http.get(github_url("all"));
             console.log(`github URL: ${github_url}`);
             if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
                 throw new Error('Error getting project measures from Github. Please make sure you provided and token inputs.');
@@ -13447,7 +13447,6 @@ class Service {
         const listRepositories = await requestService.listRepositories(orgId, productId);
         const repositoryId = await this.checkEntityExists(listRepositories.results, this.repo);
         const listReleases = await requestService.listReleases(orgId, productId);
-        console.log(listReleases);
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
         let releaseId = null;
         let startAt = "";
