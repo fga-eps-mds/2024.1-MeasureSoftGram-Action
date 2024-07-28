@@ -49,14 +49,14 @@ export default class GitHubMeasure {
     name: string, 
     value: number
   }[] | null>{
-    let github_url = (state: string) : string => {
-      return `${baseUrl}/issues?state=${state}&labels=${label}&since=${beginDate}`
-    }
-    const closed_response = await this.http.get(github_url("closed"));
-    const total_response= await this.http.get(github_url("all")); 
+    const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
+    const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
+    
     try {
       
-      console.log(`github URL: ${github_url}`)
+      const closed_response = await this.http.get(githubClosedUrl);
+      const total_response= await this.http.get(githubAllUrl); 
+      console.log(`github URL: ${githubClosedUrl}`)
   
       if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
         throw new Error(
