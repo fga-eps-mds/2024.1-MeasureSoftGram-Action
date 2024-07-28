@@ -108,8 +108,8 @@ export default class GithubAPIService {
         )
       }
   
-      const total_issues = total_response.data.total_count; 
-      const closed_issues = closed_response.data.total_count; 
+      const total_issues = total_response.total_count; 
+      const closed_issues = closed_response.total_count; 
 
       return [{name: "total_issues", value: total_issues}, {name: "closed_issues", value: closed_issues}]
 
