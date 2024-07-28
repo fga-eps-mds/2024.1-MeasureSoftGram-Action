@@ -1,11 +1,12 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { getInfo, Info } from './utils';
+import { getGitHubInfo, getInfo, Info } from './utils';
 import Sonarqube from './sonarqube'
 import { RequestService } from './service/request-service';
 import Service from './service/service';
 import GithubComment from './github/github-comment';
+import GitHubMeasure from './github';
 
 export async function run() {
   try {
@@ -16,22 +17,27 @@ export async function run() {
     const { repo } = github.context;
     const currentDate = new Date();
     const info:Info = getInfo(repo);
-    const sonarqube = new Sonarqube(info);
-    const productName = core.getInput('productName');
-    const requestService = new RequestService();
     const githubToken = core.getInput('githubToken', {required: true});
+    const productName = core.getInput('productName');
+    const service = new Service(repo.repo, repo.owner, productName, currentDate);
+    const requestService = new RequestService();
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
-
+    const begin_date = await service.checkReleaseExists(requestService); 
+    const githubInfo = getGitHubInfo(repo, begin_date)
+    const githubMeasure = new GitHubMeasure(githubInfo); 
+    const sonarqube = new Sonarqube(info);
+    
     const octokit = github.getOctokit(githubToken);
     const { pull_request } = github.context.payload;
-
+    
     const metrics = await sonarqube.getMeasures({
       pageSize: 500,
       pullRequestNumber: null,
     })
 
-    const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
-    const result = await service.calculateResults(requestService)
+    const githubMetrics = await githubMeasure.getMeasures(); 
+
+    const result = await service.calculateResults(requestService, metrics)
 
     if (!pull_request) {
       console.log('No pull request found.');

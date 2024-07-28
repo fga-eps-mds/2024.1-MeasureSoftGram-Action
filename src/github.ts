@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-
+import { GitHubInfo } from './utils';
 import { Info } from './utils';
 
 export interface MetricsResponseAPI {
@@ -23,8 +23,8 @@ export default class GitHubMeasure {
     this.host ='https://api.github.com/'
     this.token = info.token
     this.owner = info.owner
-
-    this.repository = info.repository
+    this.label = info.label
+    this.repository = info.repo
 
     const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
 
@@ -42,10 +42,7 @@ export default class GitHubMeasure {
     })
   }
 
-  public getMeasures = async ({label, begin_date}: {
-      label: string | null, 
-      begin_date: Date
-    }): Promise<MetricsResponseAPI> => {
+  public getMeasures = async () : Promise<MetricsResponseAPI> => {
     try {
       let github_url = (state: string) : string => {
         return `/repos/${this.owner}/${this.repository}/issues?state=${state}&labels=${label}`
