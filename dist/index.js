@@ -13138,11 +13138,11 @@ class GithubAPIService {
         console.log(total_response);
         try {
             console.log(`github URL: ${githubClosedUrl}`);
-            if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
+            if (!closed_response || !total_response) {
                 throw new Error('Error getting project measures from Github. Please make sure you provided and token inputs.');
             }
-            const total_issues = total_response.data.total_count;
-            const closed_issues = closed_response.data.total_count;
+            const total_issues = total_response.total_count;
+            const closed_issues = closed_response.total_count;
             return [{ name: "total_issues", value: total_issues }, { name: "closed_issues", value: closed_issues }];
         }
         catch (err) {
