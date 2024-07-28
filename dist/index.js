@@ -13246,11 +13246,12 @@ const service_1 = __importDefault(__nccwpck_require__(7686));
 const github_comment_1 = __importDefault(__nccwpck_require__(2670));
 const github_1 = __importDefault(__nccwpck_require__(978));
 async function run() {
+    var _a, _b, _c, _d, _e;
     try {
-        if (!github.context.payload.pull_request)
-            return;
-        if (!github.context.payload.pull_request.merged)
-            return;
+        console.log((_b = (_a = github.context) === null || _a === void 0 ? void 0 : _a.payload) === null || _b === void 0 ? void 0 : _b.pull_request);
+        console.log((_e = (_d = (_c = github.context) === null || _c === void 0 ? void 0 : _c.payload) === null || _d === void 0 ? void 0 : _d.pull_request) === null || _e === void 0 ? void 0 : _e.merged);
+        // if (!github.context.payload.pull_request) return
+        // if (!github.context.payload.pull_request.merged) return
         console.log('Starting action with Service');
         const { repo } = github.context;
         const githubToken = core.getInput('githubToken', { required: true });
