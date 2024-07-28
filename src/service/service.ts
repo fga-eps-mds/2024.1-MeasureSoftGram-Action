@@ -80,7 +80,7 @@ export default class Service {
             await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
         }
         
-        if(this.githubMetrics !== null) {
+        if(this.githubMetrics) {
             await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
         }
         
