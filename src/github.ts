@@ -54,11 +54,12 @@ export default class GitHubMeasure {
     //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
     let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue state:closed updated:>${beginDate}`
     let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue updated:>${beginDate}`
-
     if(this.label){
-      githubClosedUrl += `label:${this.label}`
-      githubAllUrl += `label:${this.label}`
-    }
+      githubClosedUrl += ` label:${this.label}`
+      githubAllUrl += ` label:${this.label}`
+    } 
+    console.log(githubAllUrl);
+    console.log(this.label)
     const closed_response = await this.http.get(githubClosedUrl);
     const total_response= await this.http.get(githubAllUrl); 
 
