@@ -73,7 +73,7 @@ describe('RequestService', () => {
       { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
       { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
     ];
-    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/`).reply(200, releases);
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/all`).reply(200, { results: releases });
 
     const response = await service.listReleases(1, 3);
 
