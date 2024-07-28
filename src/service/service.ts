@@ -1,5 +1,6 @@
 import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
+import { GithubMetricsResponse } from "../github";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -82,11 +83,18 @@ export default class Service {
         return {startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId}
     }
 
-    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
-        const string_metrics = JSON.stringify(metrics);
-        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-
-        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
+        if(metrics !== null) {
+            const string_metrics = JSON.stringify(metrics);
+            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+    
+            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        }
+        
+        if(githubMetrics) {
+            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
+        }
+        
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
 
@@ -102,9 +110,9 @@ export default class Service {
         return { data_characteristics, data_tsqmi };
     }
 
-    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
+    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {

@@ -1,6 +1,6 @@
 import { RequestService } from '../src/service/request-service';
 import Service from '../src/service/service';
-import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics } from './test-data/api-response';
+import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics, githubMetricsAPIResponse } from './test-data/api-response';
 
 describe('Create message Tests', () => {
     const owner = 'fga-eps-mds';
@@ -13,10 +13,11 @@ describe('Create message Tests', () => {
     const repositoryId = 1;
     const productName = 'MeasureSoftGram'
     const metrics = bodySonarCloudResponseMetrics;
+    const githubMetrics = githubMetricsAPIResponse;
 
     beforeEach(() => {
         requestService = new RequestService();
-        service = new Service(repositoryName, owner, productName, metrics, currentDate);
+        service = new Service(repositoryName, owner, productName, metrics, currentDate, null);
         jest.resetAllMocks();
     });
 
@@ -44,13 +45,15 @@ describe('Create message Tests', () => {
     test('should throw an error if there is no ongoing release', async () => {
         const nextMonth = new Date('2023-07-19T00:00:00-04:00');
 
-        const service = new Service(repositoryName, owner, 'productName', metrics, nextMonth);
+        const service = new Service(repositoryName, owner, 'productName', metrics, nextMonth, null);
         const listReleases = bodyListReleaseResponse;
 
         await expect(service.checkReleaseExists(listReleases)).rejects.toThrowError("No release is happening on 2023-07-19.");
     });
 
     it('should return the correct result when running the function to create metrics ', async () => {
+        const service = new Service(repositoryName, owner, productName, metrics, currentDate, githubMetrics);
+        requestService.insertGithubMetrics = jest.fn()
         requestService.insertMetrics = jest.fn();
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
         requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);

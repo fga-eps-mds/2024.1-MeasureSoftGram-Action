@@ -13070,19 +13070,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const axios_1 = __importDefault(__nccwpck_require__(1618));
-class GitHubMeasure {
+class GithubAPIService {
     constructor(info) {
-        this.fetchGithubMetrics = async () => {
+        this.fetchGithubMetrics = async (workflowName) => {
             const response = {
                 metrics: []
             };
             const baseUrl = `https://api.github.com`;
             const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
+            const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
+            if (ciFeedbackTime) {
+                response.metrics.push({
+                    name: ciFeedbackTime.metric,
+                    value: ciFeedbackTime.value,
+                    path: `${this.owner}/${this.repository}`,
+                });
+            }
             if (throughtput) {
                 throughtput.forEach(githubmetric => response.metrics.push({
                     name: githubmetric.name,
-                    value: githubmetric.value
+                    value: githubmetric.value,
+                    path: `${this.owner}/${this.repository}`,
                 }));
             }
             return response;
@@ -13096,15 +13105,23 @@ class GitHubMeasure {
         const tokenb64 = Buffer.from(`${this.token}:`).toString('base64');
         console.log(`Github repository: ${this.repository}`);
         console.log(`Github: ${this.owner}`);
-        this.http = axios_1.default.create({
-            baseURL: this.host,
-            timeout: 10000,
-            headers: {
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-                "Authorization": this.token ? `Bearer ${this.token}` : ""
-            }
-        });
+    }
+    async makeRequest(url, token = null) {
+        const headers = {
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        try {
+            const response = await axios_1.default.get(url, { headers });
+            return response.status === 200 ? response.data : {};
+        }
+        catch (e) {
+            console.error('Error making request to Github API at URL:', url, e);
+            return null;
+        }
     }
     async getThroughput(baseUrl, label, beginDate) {
         //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
@@ -13115,10 +13132,8 @@ class GitHubMeasure {
             githubClosedUrl += ` label:${this.label}`;
             githubAllUrl += ` label:${this.label}`;
         }
-        console.log(githubAllUrl);
-        console.log(this.label);
-        const closed_response = await this.http.get(githubClosedUrl);
-        const total_response = await this.http.get(githubAllUrl);
+        const closed_response = await this.makeRequest(githubClosedUrl, this.token);
+        const total_response = await this.makeRequest(githubAllUrl, this.token);
         console.log(closed_response);
         console.log(total_response);
         try {
@@ -13134,8 +13149,29 @@ class GitHubMeasure {
             throw new Error('Error getting project measures from GitHub. Please make sure you provided the host and token inputs.');
         }
     }
+    async getCIFeedbackTime(baseUrl, token = null, workflowName) {
+        var _a;
+        const url = `${baseUrl}/actions/runs`;
+        const response = await this.makeRequest(url, token);
+        if (response === null) {
+            return null;
+        }
+        const workflowRuns = (_a = response.workflow_runs) !== null && _a !== void 0 ? _a : [];
+        const mostRecentWorkflowRun = workflowRuns.find(run => run.name === workflowName);
+        if (!mostRecentWorkflowRun || mostRecentWorkflowRun.conclusion !== 'success') {
+            return null;
+        }
+        console.log(mostRecentWorkflowRun);
+        const startedAt = new Date(mostRecentWorkflowRun.created_at).getTime();
+        const completedAt = new Date(mostRecentWorkflowRun.updated_at).getTime();
+        const feedbackTime = (completedAt - startedAt) / 1000;
+        return {
+            metric: 'ci_feedback_time',
+            value: feedbackTime,
+        };
+    }
 }
-exports["default"] = GitHubMeasure;
+exports["default"] = GithubAPIService;
 
 
 /***/ }),
@@ -13243,40 +13279,51 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(5942));
 const github = __importStar(__nccwpck_require__(3541));
+const github_1 = __importDefault(__nccwpck_require__(8450));
 const utils_1 = __nccwpck_require__(5254);
-const sonarqube_1 = __importDefault(__nccwpck_require__(9731));
 const request_service_1 = __nccwpck_require__(744);
+const sonarqube_1 = __importDefault(__nccwpck_require__(9731));
 const service_1 = __importDefault(__nccwpck_require__(852));
 const github_comment_1 = __importDefault(__nccwpck_require__(3270));
-const github_1 = __importDefault(__nccwpck_require__(8450));
 async function run() {
     try {
         console.log("Iniciando coleta de medidas");
-        if (!github.context.payload.pull_request)
-            return;
-        if (!github.context.payload.pull_request.merged)
-            return;
+        // if (!github.context.payload.pull_request) return;
+        // if (!github.context.payload.pull_request.merged) return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
         const info = (0, utils_1.getInfo)(repo);
         const githubToken = core.getInput('githubToken', { required: true });
         const productName = core.getInput('productName');
+        const workflowName = core.getInput('workflowName');
+        const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
+        const collectGithubMetrics = !!core.getInput('collectGithubMetrics') ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
         const releaseData = await service.checkReleaseExists(requestService);
         const githubInfo = (0, utils_1.getGitHubInfo)(repo, releaseData.startAt);
-        const githubMeasure = new github_1.default(githubInfo);
+        const githubApiService = new github_1.default(githubInfo);
         const sonarqube = new sonarqube_1.default(info);
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
-        const metrics = await sonarqube.getMeasures({
-            pageSize: 500,
-            pullRequestNumber: null,
-        });
-        const githubMetrics = await githubMeasure.fetchGithubMetrics();
-        const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
+        let metrics = null;
+        if (collectSonarqubeMetrics) {
+            metrics = await sonarqube.getMeasures({
+                pageSize: 500,
+                pullRequestNumber: null,
+            });
+        }
+        console.log('test new action version');
+        let githubMetrics = null;
+        if (collectGithubMetrics) {
+            githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
+        }
+        // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
+        const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
+        // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
+        // const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
         if (!pull_request) {
             console.log('No pull request found.');
             return;
@@ -13386,6 +13433,11 @@ class RequestService {
         const response = await this.makeRequest('post', url, jsonData);
         return response === null || response === void 0 ? void 0 : response.data;
     }
+    async insertGithubMetrics(metrics, orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+        await this.makeRequest('post', url, metrics);
+        return null;
+    }
     async calculateMeasures(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }] };
@@ -13478,10 +13530,15 @@ class Service {
         }
         return { startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId };
     }
-    async createMetrics(requestService, metrics, orgId, productId, repositoryId) {
-        const string_metrics = JSON.stringify(metrics);
-        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+    async createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
+        if (metrics !== null) {
+            const string_metrics = JSON.stringify(metrics);
+            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        }
+        if (githubMetrics) {
+            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
+        }
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
         const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
@@ -13492,9 +13549,9 @@ class Service {
         console.log('TSQMI: \n', data_tsqmi);
         return { data_characteristics, data_tsqmi };
     }
-    async calculateResults(requestService, metrics, orgId, productId, repositoryId) {
+    async calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
         const characteristics = data_characteristics.map((data) => {
             return {
                 key: data.key,

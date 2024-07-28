@@ -51,8 +51,8 @@ export interface ResponseListReleases {
     id: number;
     release_name: string;
     start_at: string;
-    created_by: number;
     end_at: string;
+    created_by: number;
 }
 
 
@@ -189,6 +189,12 @@ export class RequestService {
         const jsonData = JSON.parse(metrics);
         const response = await this.makeRequest('post', url, jsonData);
         return response?.data;
+    }
+
+    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+        await this.makeRequest('post', url, metrics);
+        return null;
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
