@@ -109,7 +109,7 @@ export interface ResponseCalculateTSQMI {
 }
 
 export class RequestService {
-    private MSGRAM_SERVICE_HOST = 'https://epsmsg.shop/';
+    private MSGRAM_SERVICE_HOST = 'https://epsmsg.shop';
     private MSG_TOKEN = "'secret';"
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 

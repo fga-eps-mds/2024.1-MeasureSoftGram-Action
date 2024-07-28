@@ -13325,7 +13325,7 @@ exports.RequestService = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(8757));
 class RequestService {
     constructor() {
-        this.MSGRAM_SERVICE_HOST = 'https://epsmsg.shop/';
+        this.MSGRAM_SERVICE_HOST = 'https://epsmsg.shop';
         this.MSG_TOKEN = "'secret';";
         this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
     }
