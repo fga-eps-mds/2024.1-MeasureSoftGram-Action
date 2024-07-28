@@ -52,8 +52,8 @@ describe('Create message Tests', () => {
     });
 
     it('should return the correct result when running the function to create metrics ', async () => {
-        const service = new Service(repositoryName, owner, productName, metrics, currentDate, null);
-
+        const service = new Service(repositoryName, owner, productName, metrics, currentDate, githubMetrics);
+        requestService.insertGithubMetrics = jest.fn()
         requestService.insertMetrics = jest.fn();
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
         requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
