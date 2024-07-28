@@ -2,11 +2,13 @@ import axios, { AxiosInstance } from 'axios';
 import { GitHubInfo } from './utils';
 import { Info } from './utils';
 
-export interface MetricsResponseAPI {
-  total_issues: number, 
-  closed_issues: number
+export interface GithubMetricsResponse {
+  metrics: Array<{
+    name: string
+    value: number | string | null
+    path?: string
+  }>
 }
-
 export default class GitHubMeasure {
   private http: AxiosInstance
   public host: string
@@ -41,31 +43,54 @@ export default class GitHubMeasure {
         }
     })
   }
-
-  public getMeasures = async () : Promise<MetricsResponseAPI> => {
+  private async getThroughput(
+    baseUrl: string, 
+    token: string, 
+    label: string | null, 
+    beginDate: string
+  ): Promise<{
+    name: string, 
+    value: number
+  }[] | null>{
+    let github_url = (state: string) : string => {
+      return `${baseUrl}/issues?state=${state}&labels=${label}`
+    }
     try {
-      let github_url = (state: string) : string => {
-        return `/repos/${this.owner}/${this.repository}/issues?state=${state}&labels=${label}`
-      }
       
       const closed_response = await this.http.get(github_url("closed"));
       const total_response= await this.http.get(github_url("all")); 
       console.log(`github URL: ${github_url}`)
-
+  
       if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
         throw new Error(
           'Error getting project measures from Github. Please make sure you provided and token inputs.'
         )
       }
-
+  
       const total_issues = total_response.data.length(); 
       const closed_issues = closed_response.data.length(); 
 
-      return {"total_issues": total_issues, "closed_issues": closed_issues}
+      return [{name: "total_issues", value: total_issues}, {name: "closed_issues", value: closed_issues}]
 
     } catch (err) {
       throw new Error(
         'Error getting project measures from GitHub. Please make sure you provided the host and token inputs.'
+      )
+  }
+}
+  public fetchGithubMetrics = async (beginDate: string, workflowName: string) : Promise<GithubMetricsResponse> => {
+    const response: GithubMetricsResponse = {
+      metrics: []
+    }
+    const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`
+    const throughtput = await this.getThroughput(baseUrl, this.token, this.label, beginDate); 
+
+    if(throughtput){
+      throughtput.forEach(githubmetric => response.metrics.push({
+        name: githubmetric.name,
+        value: githubmetric.value 
+    })
+
       )
     }
   }

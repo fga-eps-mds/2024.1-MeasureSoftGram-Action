@@ -23,8 +23,8 @@ export async function run() {
     const service = new Service(repo.repo, repo.owner, productName, currentDate);
     const requestService = new RequestService();
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
-    const begin_date = await service.checkReleaseExists(requestService); 
-    const githubInfo = getGitHubInfo(repo, begin_date)
+    const beginDate = await service.checkReleaseExists(requestService); 
+    const githubInfo = getGitHubInfo(repo, beginDate)
     const githubMeasure = new GitHubMeasure(githubInfo); 
     const sonarqube = new Sonarqube(info);
     
