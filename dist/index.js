@@ -13076,7 +13076,8 @@ class GitHubMeasure {
             const response = {
                 metrics: []
             };
-            const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`;
+            const baseUrl = `https://api.github.com/`;
+            const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             if (throughtput) {
                 throughtput.forEach(githubmetric => response.metrics.push({
@@ -13106,8 +13107,14 @@ class GitHubMeasure {
         });
     }
     async getThroughput(baseUrl, label, beginDate) {
-        const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`;
-        const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`;
+        //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
+        //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
+        let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue state:closed updated:>${beginDate}`;
+        let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue updated:>${beginDate}`;
+        if (this.label) {
+            githubClosedUrl += `label:${this.label}`;
+            githubAllUrl += `label:${this.label}`;
+        }
         const closed_response = await this.http.get(githubClosedUrl);
         const total_response = await this.http.get(githubAllUrl);
         console.log(closed_response);
@@ -13117,8 +13124,8 @@ class GitHubMeasure {
             if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
                 throw new Error('Error getting project measures from Github. Please make sure you provided and token inputs.');
             }
-            const total_issues = total_response.data.length();
-            const closed_issues = closed_response.data.length();
+            const total_issues = total_response.data.total_count;
+            const closed_issues = closed_response.data.total_count;
             return [{ name: "total_issues", value: total_issues }, { name: "closed_issues", value: closed_issues }];
         }
         catch (err) {

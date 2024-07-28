@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { GitHubInfo } from './utils';
 import { Info } from './utils';
+import { GitHub } from '@actions/github/lib/utils';
 
 export interface GithubMetricsResponse {
   metrics: Array<{
@@ -49,13 +50,21 @@ export default class GitHubMeasure {
     name: string, 
     value: number
   }[] | null>{
-    const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
-    const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
-    
+    //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
+    //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
+    let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue state:closed updated:>${beginDate}`
+    let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue updated:>${beginDate}`
+
+    if(this.label){
+      githubClosedUrl += `label:${this.label}`
+      githubAllUrl += `label:${this.label}`
+    }
     const closed_response = await this.http.get(githubClosedUrl);
     const total_response= await this.http.get(githubAllUrl); 
+
     console.log(closed_response); 
     console.log(total_response);
+    
     try {
       
       console.log(`github URL: ${githubClosedUrl}`)
@@ -66,8 +75,8 @@ export default class GitHubMeasure {
         )
       }
   
-      const total_issues = total_response.data.length(); 
-      const closed_issues = closed_response.data.length(); 
+      const total_issues = total_response.data.total_count; 
+      const closed_issues = closed_response.data.total_count; 
 
       return [{name: "total_issues", value: total_issues}, {name: "closed_issues", value: closed_issues}]
 
@@ -77,11 +86,13 @@ export default class GitHubMeasure {
       )
   }
 }
+
   public fetchGithubMetrics = async () : Promise<GithubMetricsResponse> => {
     const response: GithubMetricsResponse = {
       metrics: []
     }
-    const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`
+    const baseUrl = `https://api.github.com/`
+    const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`
     const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
 
     if(throughtput){
