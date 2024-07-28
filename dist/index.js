@@ -13109,8 +13109,8 @@ class GitHubMeasure {
     async getThroughput(baseUrl, label, beginDate) {
         //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
         //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
-        let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue state:closed updated:>${beginDate}`;
-        let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}}/${this.repository} is:issue updated:>${beginDate}`;
+        let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue state:closed updated:>${beginDate}`;
+        let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue updated:>${beginDate}`;
         if (this.label) {
             githubClosedUrl += ` label:${this.label}`;
             githubAllUrl += ` label:${this.label}`;
