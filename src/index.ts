@@ -33,6 +33,8 @@ export async function run() {
       pullRequestNumber: null,
     })
 
+    console.log('test new action version')
+
     const githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
