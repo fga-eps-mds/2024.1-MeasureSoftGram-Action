@@ -1,5 +1,6 @@
 import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
+import { GithubMetricsResponse } from "../github";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -15,14 +16,16 @@ export default class Service {
     private owner: string;
     private currentDate: Date;
     private productName: string;
-    private metrics: MetricsResponseAPI;
+    private metrics: MetricsResponseAPI | null;
+    private githubMetrics: GithubMetricsResponse | null
 
-    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI, currentDate: Date) {
+    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI | null, currentDate: Date, githubMetrics: GithubMetricsResponse | null) {
         this.repo = repo;
         this.owner = owner;
         this.currentDate = currentDate;
         this.productName = productName;
         this.metrics = metrics;
+        this.githubMetrics = githubMetrics;
     }
 
     private logRepoInfo() {
@@ -69,11 +72,18 @@ export default class Service {
         }
     }
 
-    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
-        const string_metrics = JSON.stringify(metrics);
-        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-
-        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, orgId: number, productId: number, repositoryId: number) {
+        if(metrics !== null) {
+            const string_metrics = JSON.stringify(metrics);
+            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+    
+            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        }
+        
+        if(this.githubMetrics) {
+            await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
+        }
+        
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
 

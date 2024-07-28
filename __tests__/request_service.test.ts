@@ -6,7 +6,8 @@ import {
   bodyCalculateSubcharacteristicsResponse,
   bodyCalculateTSQMIResponse,
   bodyCalculateMeasuresResponse,
-  bodyInsertMetricsResponse
+  bodyInsertMetricsResponse,
+  githubMetricsAPIResponse
 } from './test-data/api-response';
 import { RequestService } from '../src/service/request-service';
 
@@ -73,7 +74,7 @@ describe('RequestService', () => {
       { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
       { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
     ];
-    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/`).reply(200, releases);
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/all`).reply(200, { results: releases });
 
     const response = await service.listReleases(1, 3);
 
@@ -99,6 +100,22 @@ describe('RequestService', () => {
     expect(result).toEqual(bodyInsertMetricsResponse);
   });
 
+  test('should successfully insert github metrics', async () => {
+    const metrics = githubMetricsAPIResponse;
+    const orgId = 1;
+    const productId = 1;
+    const repoId = 1;
+
+    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+
+    mockAxios.onPost(expectedUrl).reply(200, bodyInsertMetricsResponse);
+
+    const result = await service.insertGithubMetrics(metrics, orgId, productId, repoId);
+
+    expect(mockAxios.history.post.length).toBe(1);
+    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(metrics);
+    expect(mockAxios.history.post[0].url).toBe(expectedUrl);
+  });
 
   test('should successfully calculate measures', async () => {
     const orgId = 1;

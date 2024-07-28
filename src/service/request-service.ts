@@ -51,8 +51,8 @@ export interface ResponseListReleases {
     id: number;
     release_name: string;
     start_at: string;
-    created_by: number;
     end_at: string;
+    created_by: number;
 }
 
 
@@ -109,7 +109,7 @@ export interface ResponseCalculateTSQMI {
 }
 
 export class RequestService {
-    private MSGRAM_SERVICE_HOST = 'https://measuresoftgram-service-2023-2-0b266df334ad.herokuapp.com';
+    private MSGRAM_SERVICE_HOST = 'https://epsmsg.shop';
     private MSG_TOKEN = "'secret';"
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
@@ -178,9 +178,9 @@ export class RequestService {
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;    
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        return response?.data.results;
     }
     
 
@@ -189,6 +189,12 @@ export class RequestService {
         const jsonData = JSON.parse(metrics);
         const response = await this.makeRequest('post', url, jsonData);
         return response?.data;
+    }
+
+    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+        await this.makeRequest('post', url, metrics);
+        return null;
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {

@@ -25,6 +25,7 @@
     "@actions/exec": "^1.1.1",
     "@actions/github": "^5.1.1",
     "@octokit/rest": "^19.0.13",
+    "@vercel/ncc": "^0.38.1",
     "axios": "^1.4.0",
     "axios-mock-adapter": "^1.21.4",
     "jest-sonar": "^0.2.16",
