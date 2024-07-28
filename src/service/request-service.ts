@@ -152,12 +152,12 @@ export class RequestService {
             }
         }
 
-        if (response?.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        // if (response?.data) {
+        //     console.log(`Data received. Status code: ${response.status}`);
+        //     return response;
+        // } else {
+        //     throw new Error('No data received from the API.');
+        // }
     }
 
     public async listOrganizations(): Promise<ResponseListOrganizations> {
