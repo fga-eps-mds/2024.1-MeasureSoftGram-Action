@@ -13375,6 +13375,7 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
+        console.log("URL REQUES ", url, " method: ", method, " data", data);
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -13531,6 +13532,8 @@ class Service {
         return { startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId };
     }
     async createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
+        console.log("metrics", metrics);
+        console.log("github: ", githubMetrics);
         if (metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');

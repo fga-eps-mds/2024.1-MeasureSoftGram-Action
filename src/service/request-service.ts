@@ -126,6 +126,7 @@ export class RequestService {
     }
 
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
+        console.log("URL REQUES ", url," method: ", method, " data", data)
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',

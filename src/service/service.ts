@@ -84,6 +84,9 @@ export default class Service {
     }
 
     public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
+        console.log("metrics", metrics); 
+        console.log("github: ", githubMetrics);
+        
         if(metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
