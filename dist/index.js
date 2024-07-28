@@ -13228,7 +13228,7 @@ exports.RequestService = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(5083));
 class RequestService {
     constructor() {
-        this.MSGRAM_SERVICE_HOST = 'https://measuresoftgram-service-2023-2-0b266df334ad.herokuapp.com';
+        this.MSGRAM_SERVICE_HOST = 'https://epsmsg.shop';
         this.MSG_TOKEN = "'secret';";
         this.baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
     }
