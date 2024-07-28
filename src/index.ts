@@ -2,11 +2,11 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 
 import { getInfo, Info } from './utils'
-import Sonarqube from './sonarqube'
+import Sonarqube, { MetricsResponseAPI } from './sonarqube'
 import { RequestService } from './service/request-service'
 import Service from './service/service'
 import GithubComment from './github/github-comment'
-import GithubAPIService from './github'
+import GithubAPIService, { GithubMetricsResponse } from './github'
 
 export async function run() {
   try {
@@ -20,6 +20,8 @@ export async function run() {
     const { repo } = github.context
     const githubToken = core.getInput('githubToken', { required: true })
     const workflowName = core.getInput('workflowName')
+    const collectSonarqubeMetrics = !!core.getInput('collectSonarqubeMetrics')
+    const collectGithubMetrics = !!core.getInput('collectGithubMetrics')
     const currentDate = new Date()
     const info: Info = getInfo(repo)
     const sonarqube = new Sonarqube(info)
@@ -31,14 +33,22 @@ export async function run() {
     const octokit = github.getOctokit(githubToken)
     const { pull_request } = github.context.payload
 
-    const metrics = await sonarqube.getMeasures({
-      pageSize: 500,
-      pullRequestNumber: null,
-    })
+    let metrics: MetricsResponseAPI | null = null
+
+    if (collectSonarqubeMetrics) {
+      metrics = await sonarqube.getMeasures({
+        pageSize: 500,
+        pullRequestNumber: null,
+      })
+    }
 
     console.log('test new action version')
 
-    const githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
+    let githubMetrics: GithubMetricsResponse | null = null
+
+    if (collectGithubMetrics) {
+      githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
+    }
 
     const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
     const result = await service.calculateResults(requestService)

@@ -13256,6 +13256,8 @@ async function run() {
         const { repo } = github.context;
         const githubToken = core.getInput('githubToken', { required: true });
         const workflowName = core.getInput('workflowName');
+        const collectSonarqubeMetrics = !!core.getInput('collectSonarqubeMetrics');
+        const collectGithubMetrics = !!core.getInput('collectGithubMetrics');
         const currentDate = new Date();
         const info = (0, utils_1.getInfo)(repo);
         const sonarqube = new sonarqube_1.default(info);
@@ -13265,12 +13267,18 @@ async function run() {
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
-        const metrics = await sonarqube.getMeasures({
-            pageSize: 500,
-            pullRequestNumber: null,
-        });
+        let metrics = null;
+        if (collectSonarqubeMetrics) {
+            metrics = await sonarqube.getMeasures({
+                pageSize: 500,
+                pullRequestNumber: null,
+            });
+        }
         console.log('test new action version');
-        const githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
+        let githubMetrics = null;
+        if (collectGithubMetrics) {
+            githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
+        }
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics);
         const result = await service.calculateResults(requestService);
         if (!pull_request) {
@@ -13469,10 +13477,14 @@ class Service {
         }
     }
     async createMetrics(requestService, metrics, orgId, productId, repositoryId) {
-        const string_metrics = JSON.stringify(metrics);
-        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
-        await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
+        if (metrics !== null) {
+            const string_metrics = JSON.stringify(metrics);
+            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        }
+        if (this.githubMetrics !== null) {
+            await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
+        }
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
         const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
