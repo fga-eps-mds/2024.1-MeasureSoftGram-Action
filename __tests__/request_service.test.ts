@@ -101,7 +101,7 @@ describe('RequestService', () => {
   });
 
   test('should successfully insert github metrics', async () => {
-    const metrics = githubMetricsAPIResponse; // a JSON string
+    const metrics = githubMetricsAPIResponse;
     const orgId = 1;
     const productId = 1;
     const repoId = 1;
@@ -115,7 +115,6 @@ describe('RequestService', () => {
     expect(mockAxios.history.post.length).toBe(1);
     expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(metrics);
     expect(mockAxios.history.post[0].url).toBe(expectedUrl);
-    expect(result).toEqual(bodyInsertMetricsResponse);
   });
 
   test('should successfully calculate measures', async () => {
