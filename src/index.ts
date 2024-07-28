@@ -10,8 +10,11 @@ import GithubAPIService from './github'
 
 export async function run() {
   try {
-    if (!github.context.payload.pull_request) return
-    if (!github.context.payload.pull_request.merged) return
+    console.log(github.context?.payload?.pull_request)
+    console.log(github.context?.payload?.pull_request?.merged)
+
+    // if (!github.context.payload.pull_request) return
+    // if (!github.context.payload.pull_request.merged) return
 
     console.log('Starting action with Service')
     const { repo } = github.context
