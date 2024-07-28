@@ -15,14 +15,12 @@ export default class Service {
     private owner: string;
     private currentDate: Date;
     private productName: string;
-    private metrics: MetricsResponseAPI;
 
-    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI, currentDate: Date) {
+    constructor(repo: string, owner: string, productName: string, currentDate: Date) {
         this.repo = repo;
         this.owner = owner;
         this.currentDate = currentDate;
         this.productName = productName;
-        this.metrics = metrics;
     }
 
     private logRepoInfo() {
@@ -47,26 +45,39 @@ export default class Service {
         }
     }
 
-    public async checkReleaseExists(listReleases: Array<ResponseListReleases>): Promise<void> {
+    public async checkReleaseExists(requestService: RequestService): Promise<Date> {
+        const listOrganizations = await requestService.listOrganizations();
+        const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
+        console.log('orgId ', orgId);
+    
+        const listProducts = await requestService.listProducts(orgId);
+        const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
+        console.log('productId ', productId)
+        
+        const listRepositories = await requestService.listRepositories(orgId, productId);
+        const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
+    
+        const listReleases = await requestService.listReleases(orgId, productId);
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;
-
+        let startAt = ""; 
         for (const release of listReleases) {
-            const startAt = release.start_at.split('T')[0];
+            startAt = release.start_at.split('T')[0];
             const endAt = release.end_at.split('T')[0];
 
             if (currentDateStr >= startAt && currentDateStr <= endAt) {
                 releaseId = release.id;
                 break;
             }
-        }
+        }startAt
 
         if (releaseId === null) {
             throw new Error(`No release is happening on ${currentDateStr}.`);
         } else {
             console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
         }
+        return new Date(startAt);
     }
 
     public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI, orgId: number, productId: number, repositoryId: number) {
@@ -89,21 +100,8 @@ export default class Service {
         return { data_characteristics, data_tsqmi };
     }
 
-    public async calculateResults(requestService: RequestService) {
+    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI) {
         this.logRepoInfo();
-        const listOrganizations = await requestService.listOrganizations();
-        const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
-        console.log('orgId ', orgId);
-
-        const listProducts = await requestService.listProducts(orgId);
-        const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
-        console.log('productId ', productId)
-        
-        const listRepositories = await requestService.listRepositories(orgId, productId);
-        const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
-
-        const listReleases = await requestService.listReleases(orgId, productId);
-        await this.checkReleaseExists(listReleases);
         const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
