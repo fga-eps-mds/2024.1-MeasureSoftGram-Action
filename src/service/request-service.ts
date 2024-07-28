@@ -151,7 +151,7 @@ export class RequestService {
                 console.error('An unexpected error occurred.');
             }
         }
-
+        return response; 
         // if (response?.data) {
         //     console.log(`Data received. Status code: ${response.status}`);
         //     return response;

@@ -13400,13 +13400,13 @@ class RequestService {
                 console.error('An unexpected error occurred.');
             }
         }
-        if (response === null || response === void 0 ? void 0 : response.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response;
-        }
-        else {
-            throw new Error('No data received from the API.');
-        }
+        return response;
+        // if (response?.data) {
+        //     console.log(`Data received. Status code: ${response.status}`);
+        //     return response;
+        // } else {
+        //     throw new Error('No data received from the API.');
+        // }
     }
     async listOrganizations() {
         const url = `${this.baseUrl}organizations/`;
