@@ -36,7 +36,7 @@ export async function run() {
       pullRequestNumber: null,
     })
 
-    const githubMetrics = await githubMeasure.getMeasures(); 
+    const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
 
     const result = await service.calculateResults(requestService, metrics)
 

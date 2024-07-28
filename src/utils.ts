@@ -26,15 +26,15 @@ export interface GitHubInfo{
     repo: string
     label: string
     token: string
-    begin_date: Date
+    beginDate: string
 }
 
-export function getGitHubInfo(repo: {owner: string, repo: string }, begin_date: Date): GitHubInfo {
+export function getGitHubInfo(repo: {owner: string, repo: string }, beginDate: string): GitHubInfo {
    return {
     owner: repo.owner, 
     repo: repo.repo, 
     label: core.getInput('usLabel'), 
     token: core.getInput('gitHubToken'),
-    begin_date: begin_date
+    beginDate: beginDate
    } 
 }

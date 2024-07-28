@@ -16,10 +16,7 @@ export default class GitHubMeasure {
   public repository: string
   public owner: string
   public label: string | null
-  public githubMetrics = [
-      'closed_issues',
-      'total_issues'
-  ]
+  beginDate: string
 
   constructor(info: GitHubInfo) {
     this.host ='https://api.github.com/'
@@ -27,6 +24,7 @@ export default class GitHubMeasure {
     this.owner = info.owner
     this.label = info.label
     this.repository = info.repo
+    this.beginDate = info.beginDate
 
     const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
 
@@ -53,7 +51,7 @@ export default class GitHubMeasure {
     value: number
   }[] | null>{
     let github_url = (state: string) : string => {
-      return `${baseUrl}/issues?state=${state}&labels=${label}`
+      return `${baseUrl}/issues?state=${state}&labels=${label}&since=${beginDate}`
     }
     try {
       
@@ -78,20 +76,19 @@ export default class GitHubMeasure {
       )
   }
 }
-  public fetchGithubMetrics = async (beginDate: string, workflowName: string) : Promise<GithubMetricsResponse> => {
+  public fetchGithubMetrics = async () : Promise<GithubMetricsResponse> => {
     const response: GithubMetricsResponse = {
       metrics: []
     }
     const baseUrl = `https://api.github.com/repos/${this.owner}/${this.repository}`
-    const throughtput = await this.getThroughput(baseUrl, this.token, this.label, beginDate); 
+    const throughtput = await this.getThroughput(baseUrl, this.token, this.label, this.beginDate); 
 
     if(throughtput){
       throughtput.forEach(githubmetric => response.metrics.push({
         name: githubmetric.name,
         value: githubmetric.value 
-    })
-
-      )
+      }))
     }
+    return response; 
   }
 }
