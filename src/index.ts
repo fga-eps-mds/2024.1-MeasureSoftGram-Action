@@ -10,6 +10,7 @@ import GitHubMeasure from './github';
 
 export async function run() {
   try {
+    console.log("Iniciando coleta de medidas")
     if (!github.context.payload.pull_request) return;
     if (!github.context.payload.pull_request.merged) return;
 
