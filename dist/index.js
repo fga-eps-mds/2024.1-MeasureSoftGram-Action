@@ -13110,6 +13110,8 @@ class GitHubMeasure {
         const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`;
         const closed_response = await this.http.get(githubClosedUrl);
         const total_response = await this.http.get(githubAllUrl);
+        console.log(closed_response);
+        console.log(total_response);
         try {
             console.log(`github URL: ${githubClosedUrl}`);
             if (closed_response.status !== 200 || !closed_response.data || total_response.status !== 200 || !total_response.data) {
