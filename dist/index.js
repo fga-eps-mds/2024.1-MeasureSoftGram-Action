@@ -13256,8 +13256,8 @@ async function run() {
         const { repo } = github.context;
         const githubToken = core.getInput('githubToken', { required: true });
         const workflowName = core.getInput('workflowName');
-        const collectSonarqubeMetrics = !!core.getInput('collectSonarqubeMetrics');
-        const collectGithubMetrics = !!core.getInput('collectGithubMetrics');
+        const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
+        const collectGithubMetrics = !!core.getInput('collectGithubMetrics') ? true : false;
         const currentDate = new Date();
         const info = (0, utils_1.getInfo)(repo);
         const sonarqube = new sonarqube_1.default(info);
@@ -13265,6 +13265,13 @@ async function run() {
         const productName = core.getInput('productName');
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
+        console.log({
+            workflowName,
+            collectSonarqubeMetrics,
+            collectGithubMetrics,
+            info,
+            productName,
+        });
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         let metrics = null;
