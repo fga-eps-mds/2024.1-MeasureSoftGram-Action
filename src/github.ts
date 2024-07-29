@@ -1,9 +1,11 @@
 import axios, { AxiosResponse } from 'axios'
 
-interface MetricsResponse {
-  metrics: string[]
-  values: (number | string | null)[]
-  file_paths?: string
+export interface GithubMetricsResponse {
+  metrics: Array<{
+    name: string
+    value: number | string | null
+    path?: string
+  }>
 }
 
 interface WorkflowRun {
@@ -94,9 +96,11 @@ export default class GithubAPIService {
     }
   }
 
-  public async fetchGithubMetrics(workflowName: string): Promise<MetricsResponse> {
+  public async fetchGithubMetrics(workflowName: string): Promise<GithubMetricsResponse> {
     const repository = 'chfleury/golang-app'
-    const metrics: string[] = []
+    const response: GithubMetricsResponse = {
+      metrics: [],
+    }
     const values: (number | string | null)[] = []
     const [owner, repositoryName] = repository.split('/')
     const url = `https://api.github.com/repos/${owner}/${repositoryName}`
@@ -104,10 +108,13 @@ export default class GithubAPIService {
     const ciFeedbackTime = await this.getCIFeedbackTime(url, this.token, workflowName)
 
     if (ciFeedbackTime) {
-      metrics.push(ciFeedbackTime.metric)
-      values.push(ciFeedbackTime.value)
+      response.metrics.push({
+        name: ciFeedbackTime.metric,
+        value: ciFeedbackTime.value,
+        path: repository,
+      })
     }
 
-    return { metrics, values, file_paths: repository }
+    return response
   }
 }
