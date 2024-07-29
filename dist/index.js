@@ -13401,17 +13401,17 @@ class RequestService {
             }
         }
         return response;
-        // if (response?.data) {
-        //     console.log(`Data received. Status code: ${response.status}`);
-        //     return response;
-        // } else {
-        //     throw new Error('No data received from the API.');
-        // }
     }
     async listOrganizations() {
         const url = `${this.baseUrl}organizations/`;
         const response = await this.makeRequest('get', url);
-        return response === null || response === void 0 ? void 0 : response.data;
+        if (response === null || response === void 0 ? void 0 : response.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response === null || response === void 0 ? void 0 : response.data;
+        }
+        else {
+            throw new Error('No data received from the API.');
+        }
     }
     async listProducts(orgId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/`;
@@ -13421,12 +13421,24 @@ class RequestService {
     async listRepositories(orgId, productId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        return response === null || response === void 0 ? void 0 : response.data;
+        if (response) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response === null || response === void 0 ? void 0 : response.data;
+        }
+        else {
+            throw new Error('No data received from the API.');
+        }
     }
     async listReleases(orgId, productId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;
         const response = await this.makeRequest('get', url);
-        return response === null || response === void 0 ? void 0 : response.data.results;
+        if (response === null || response === void 0 ? void 0 : response.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response === null || response === void 0 ? void 0 : response.data.results;
+        }
+        else {
+            throw new Error('No data received from the API.');
+        }
     }
     async insertMetrics(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
