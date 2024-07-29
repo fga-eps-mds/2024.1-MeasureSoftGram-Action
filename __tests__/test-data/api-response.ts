@@ -280,6 +280,21 @@ export const githubMetricsAPIResponse: GithubMetricsResponse = {
   ]
 }
 
+export const githubMetricsAPIThroughput: GithubMetricsResponse = {
+  metrics: [
+    {
+      name: 'total_issues', 
+      value: 2, 
+      path: "testOwner/testRepo"
+    }, 
+    {
+      name: 'closed_issues', 
+      value: 1, 
+      path: "testOwner/testRepo"
+    }
+  ]
+}
+
 export const bodyListReleaseResponse: ResponseListReleases[] = [
   {
       "id": 1,

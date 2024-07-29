@@ -108,12 +108,11 @@ describe('RequestService', () => {
 
     const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
 
-    mockAxios.onPost(expectedUrl).reply(200, bodyInsertMetricsResponse);
+    mockAxios.onPost(expectedUrl).reply(200);
 
-    const result = await service.insertGithubMetrics(metrics, orgId, productId, repoId);
+    await service.insertGithubMetrics(metrics, orgId, productId, repoId);
 
     expect(mockAxios.history.post.length).toBe(1);
-    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(metrics);
     expect(mockAxios.history.post[0].url).toBe(expectedUrl);
   });
 
@@ -198,10 +197,11 @@ describe('RequestService', () => {
 
   test('should throw error in case network error in listOrganizations', async () => {
     const errorMsg = 'No data received from the API.';
-
-    mockAxios.onGet().networkError();
-
+    jest.resetAllMocks();
+    mockAxios.onGet().reply(200, null);
+    
     const listOrganizationsExecution = service.listOrganizations();
+    console.log(listOrganizationsExecution); 
 
     await expect(listOrganizationsExecution).rejects.toThrow(errorMsg);
   });

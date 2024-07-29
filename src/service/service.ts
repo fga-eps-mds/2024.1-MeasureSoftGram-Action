@@ -16,16 +16,12 @@ export default class Service {
     private owner: string;
     private currentDate: Date;
     private productName: string;
-    private metrics: MetricsResponseAPI | null;
-    private githubMetrics: GithubMetricsResponse | null
 
-    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI | null, currentDate: Date, githubMetrics: GithubMetricsResponse | null) {
+    constructor(repo: string, owner: string, productName: string, currentDate: Date) {
         this.repo = repo;
         this.owner = owner;
         this.currentDate = currentDate;
         this.productName = productName;
-        this.metrics = metrics;
-        this.githubMetrics = githubMetrics;
     }
 
     private logRepoInfo() {
@@ -50,13 +46,27 @@ export default class Service {
         }
     }
 
-    public async checkReleaseExists(listReleases: Array<ResponseListReleases>): Promise<void> {
+    public async checkReleaseExists(requestService: RequestService): Promise<{startAt: string, orgId: number, productId: number, repositoryId: number}> {
+        const listOrganizations = await requestService.listOrganizations();
+        const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
+        console.log('orgId ', orgId);
+    
+        const listProducts = await requestService.listProducts(orgId);
+        const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
+        console.log('productId ', productId)
+        
+        const listRepositories = await requestService.listRepositories(orgId, productId);
+        const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
+    
+        const listReleases: Array<ResponseListReleases> = await requestService.listReleases(orgId, productId);
         const currentDateStr = this.currentDate.toISOString().split('T')[0];
 
         let releaseId = null;
-
+        let startAt = ""; 
+        let responseStart = ""; 
         for (const release of listReleases) {
-            const startAt = release.start_at.split('T')[0];
+            responseStart = release.start_at; 
+            startAt = release.start_at.split('T')[0];
             const endAt = release.end_at.split('T')[0];
 
             if (currentDateStr >= startAt && currentDateStr <= endAt) {
@@ -70,9 +80,13 @@ export default class Service {
         } else {
             console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
         }
+        return {startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId}
     }
 
-    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, orgId: number, productId: number, repositoryId: number) {
+    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
+        console.log("metrics", metrics); 
+        console.log("github: ", githubMetrics);
+        
         if(metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
@@ -80,8 +94,8 @@ export default class Service {
             await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
         }
         
-        if(this.githubMetrics) {
-            await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
+        if(githubMetrics) {
+            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
         }
         
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
@@ -99,22 +113,9 @@ export default class Service {
         return { data_characteristics, data_tsqmi };
     }
 
-    public async calculateResults(requestService: RequestService) {
+    public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const listOrganizations = await requestService.listOrganizations();
-        const orgId: number = await this.checkEntityExists(listOrganizations.results, this.owner);
-        console.log('orgId ', orgId);
-
-        const listProducts = await requestService.listProducts(orgId);
-        const productId: number = await this.checkEntityExists(listProducts.results, this.productName);
-        console.log('productId ', productId)
-        
-        const listRepositories = await requestService.listRepositories(orgId, productId);
-        const repositoryId: number = await this.checkEntityExists(listRepositories.results, this.repo);
-
-        const listReleases = await requestService.listReleases(orgId, productId);
-        await this.checkReleaseExists(listReleases);
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
+        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
         const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
             return {

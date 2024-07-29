@@ -126,6 +126,7 @@ export class RequestService {
     }
 
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
+        console.log("URL REQUES ", url," method: ", method, " data", data)
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -150,19 +151,18 @@ export class RequestService {
                 console.error('An unexpected error occurred.');
             }
         }
-
-        if (response?.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        return response; 
     }
 
     public async listOrganizations(): Promise<ResponseListOrganizations> {
         const url = `${this.baseUrl}organizations/`;
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listProducts(orgId: number): Promise<ResponseListProducts> {
@@ -174,13 +174,23 @@ export class RequestService {
     public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        return response?.data;
+        if (response) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        return response?.data.results;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data.results;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
     
 
