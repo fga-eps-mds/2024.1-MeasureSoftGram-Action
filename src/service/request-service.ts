@@ -152,18 +152,17 @@ export class RequestService {
             }
         }
         return response; 
-        // if (response?.data) {
-        //     console.log(`Data received. Status code: ${response.status}`);
-        //     return response;
-        // } else {
-        //     throw new Error('No data received from the API.');
-        // }
     }
 
     public async listOrganizations(): Promise<ResponseListOrganizations> {
         const url = `${this.baseUrl}organizations/`;
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listProducts(orgId: number): Promise<ResponseListProducts> {
@@ -175,13 +174,23 @@ export class RequestService {
     public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        return response?.data;
+        if (response) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        return response?.data.results;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data.results;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
     
 

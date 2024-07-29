@@ -17,7 +17,7 @@ describe('Create message Tests', () => {
 
     beforeEach(() => {
         requestService = new RequestService();
-        service = new Service(repositoryName, owner, productName, metrics, currentDate, null);
+        service = new Service(repositoryName, owner, productName, currentDate);
         jest.resetAllMocks();
     });
 
@@ -36,23 +36,28 @@ describe('Create message Tests', () => {
     });
 
     test('should not throw an error if there is an ongoing release', async () => {
-        const listReleases = bodyListReleaseResponse;
+        requestService.listReleases = jest.fn().mockResolvedValue(bodyListReleaseResponse);
+        requestService.listOrganizations = jest.fn().mockResolvedValue(bodyListOrganizationsResponse);
+        requestService.listProducts = jest.fn().mockResolvedValue(bodyListProductsResponse);
+        requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
 
-
-        await expect(service.checkReleaseExists(listReleases)).resolves.not.toThrowError();
+        await expect(service.checkReleaseExists(requestService)).resolves.not.toThrowError();
     });
 
     test('should throw an error if there is no ongoing release', async () => {
         const nextMonth = new Date('2023-07-19T00:00:00-04:00');
+        requestService.listReleases = jest.fn().mockResolvedValue(bodyListReleaseResponse);
+        requestService.listOrganizations = jest.fn().mockResolvedValue(bodyListOrganizationsResponse);
+        requestService.listProducts = jest.fn().mockResolvedValue(bodyListProductsResponse);
+        requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
 
-        const service = new Service(repositoryName, owner, 'productName', metrics, nextMonth, null);
-        const listReleases = bodyListReleaseResponse;
+        const service = new Service(repositoryName, owner, 'MeasureSoftGram2', nextMonth);
 
-        await expect(service.checkReleaseExists(listReleases)).rejects.toThrowError("No release is happening on 2023-07-19.");
+        await expect(service.checkReleaseExists(requestService)).rejects.toThrowError("No release is happening on 2023-07-19.");
     });
 
     it('should return the correct result when running the function to create metrics ', async () => {
-        const service = new Service(repositoryName, owner, productName, metrics, currentDate, githubMetrics);
+        const service = new Service(repositoryName, owner, productName,currentDate);
         requestService.insertGithubMetrics = jest.fn()
         requestService.insertMetrics = jest.fn();
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
@@ -60,7 +65,7 @@ describe('Create message Tests', () => {
         requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
         requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
 
-        const result = await service.createMetrics(requestService, metrics, orgId, productId, repositoryId);
+        const result = await service.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
         expect(requestService.insertMetrics).toHaveBeenCalledWith(
             JSON.stringify(metrics),
@@ -90,12 +95,7 @@ describe('Create message Tests', () => {
         requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
         requestService.listReleases = jest.fn().mockResolvedValue(bodyListReleaseResponse);
 
-        const result = await service.calculateResults(requestService);
-
-        expect(requestService.listOrganizations).toHaveBeenCalled();
-        expect(requestService.listProducts).toHaveBeenCalled();
-        expect(requestService.listRepositories).toHaveBeenCalled();
-        expect(requestService.listReleases).toHaveBeenCalled();
+        const result = await service.calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
         expect(result).toEqual([
             {
