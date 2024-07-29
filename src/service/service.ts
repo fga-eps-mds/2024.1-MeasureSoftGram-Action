@@ -1,5 +1,6 @@
 import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
+import { GithubMetricsResponse } from "../github";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -16,13 +17,15 @@ export default class Service {
     private currentDate: Date;
     private productName: string;
     private metrics: MetricsResponseAPI;
+    private githubMetrics: GithubMetricsResponse
 
-    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI, currentDate: Date) {
+    constructor(repo: string, owner: string, productName: string, metrics: MetricsResponseAPI, currentDate: Date, githubMetrics: GithubMetricsResponse) {
         this.repo = repo;
         this.owner = owner;
         this.currentDate = currentDate;
         this.productName = productName;
         this.metrics = metrics;
+        this.githubMetrics = githubMetrics;
     }
 
     private logRepoInfo() {
@@ -74,6 +77,8 @@ export default class Service {
         console.log('Calculating metrics, measures, characteristics and subcharacteristics');
 
         await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+        await requestService.insertGithubMetrics(this.githubMetrics, orgId, productId, repositoryId);
+        
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
 

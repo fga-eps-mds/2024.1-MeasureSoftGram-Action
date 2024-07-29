@@ -191,6 +191,12 @@ export class RequestService {
         return response?.data;
     }
 
+    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+        await this.makeRequest('post', url, metrics);
+        return null;
+    }
+
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
