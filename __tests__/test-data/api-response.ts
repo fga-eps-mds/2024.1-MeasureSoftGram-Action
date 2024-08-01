@@ -288,7 +288,7 @@ export const githubMetricsAPIThroughput: GithubMetricsResponse = {
       path: "testOwner/testRepo"
     }, 
     {
-      name: 'closed_issues', 
+      name: 'resolved_issues', 
       value: 1, 
       path: "testOwner/testRepo"
     }
