@@ -13079,7 +13079,7 @@ class GithubAPIService {
             const baseUrl = `https://api.github.com`;
             const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
-            const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName, this.beginDate);
+            const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
             if (ciFeedbackTime) {
                 response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
                     name: ciFeedbackTime.metric,
@@ -13149,8 +13149,7 @@ class GithubAPIService {
             throw new Error('Error getting project measures from GitHub. Please make sure you provided the host and token inputs.');
         }
     }
-    async getCIFeedbackTime(baseUrl, token = null, workflowName, beginDate // TODO
-    ) {
+    async getCIFeedbackTime(baseUrl, token = null, workflowName) {
         var _a;
         const url = `${baseUrl}/actions/runs`;
         const response = await this.makeRequest(url, token);
@@ -13158,7 +13157,7 @@ class GithubAPIService {
             return null;
         }
         const workflowRuns = (_a = response.workflow_runs) !== null && _a !== void 0 ? _a : [];
-        const runs = workflowRuns.filter(run => run.name === workflowName && run.conclusion === 'success');
+        const runs = workflowRuns.filter(run => run.name === workflowName);
         let sumFeedbackTimes = 0;
         runs.forEach((run) => {
             const startedAt = new Date(run.created_at).getTime();
