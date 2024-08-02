@@ -169,7 +169,7 @@ private async getCIFeedbackTime(
     const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
 
     if (ciFeedbackTime) {
-      response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
+      response.metrics = response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
         name: ciFeedbackTime.metric,
         value: ciFeedbackTime.value,
         path: `${this.owner}/${this.repository}`,

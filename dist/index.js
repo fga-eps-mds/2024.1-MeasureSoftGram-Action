@@ -13081,7 +13081,7 @@ class GithubAPIService {
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
             if (ciFeedbackTime) {
-                response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
+                response.metrics = response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
                     name: ciFeedbackTime.metric,
                     value: ciFeedbackTime.value,
                     path: `${this.owner}/${this.repository}`,
@@ -13301,7 +13301,7 @@ async function run() {
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
         const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false;
+        const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13323,10 +13323,7 @@ async function run() {
         if (collectGithubMetrics) {
             githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         }
-        // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
-        // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
-        // const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
         if (!pull_request) {
             console.log('No pull request found.');
             return;
@@ -13455,8 +13452,9 @@ class RequestService {
         return null;
     }
     async calculateMeasures(orgId, productId, repoId) {
+        // TODO const sonarMeasures = [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, ]
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, { key: "team_throughput" }, { key: "ci_feedback_time" }] };
+        const data = { measures: [{ key: "team_throughput" }, { key: "ci_feedback_time" }] };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
@@ -13559,13 +13557,15 @@ class Service {
         }
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
-        console.log('Calculated characteristics: \n', data_characteristics);
+        // TODO CORRIGIR ENDPOINTS DE CALCULOS NO SERVICE
+        // const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
+        // console.log('Calculated characteristics: \n', data_characteristics);
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
         console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
-        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
-        console.log('TSQMI: \n', data_tsqmi);
-        return { data_characteristics, data_tsqmi };
+        // const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
+        // console.log('TSQMI: \n', data_tsqmi);
+        // return { data_characteristics, data_tsqmi };
+        return { data_characteristics: [], data_tsqmi: { value: 0 } };
     }
     async calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
         this.logRepoInfo();
