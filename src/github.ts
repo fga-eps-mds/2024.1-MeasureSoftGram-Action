@@ -124,7 +124,6 @@ private async getCIFeedbackTime(
   baseUrl: string,
   token: string | null = null,
   workflowName: string,
-  beginDate: string // TODO
 ): Promise<Array<{
   metric: string
   value: number
@@ -140,7 +139,7 @@ private async getCIFeedbackTime(
 
   const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? []
 
-  const runs = workflowRuns.filter(run => run.name === workflowName && run.conclusion === 'success')
+  const runs = workflowRuns.filter(run => run.name === workflowName)
   let sumFeedbackTimes = 0
 
   runs.forEach((run) => {
@@ -170,7 +169,7 @@ private async getCIFeedbackTime(
     const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`
     const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
 
-    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName, this.beginDate);
+    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
 
     if (ciFeedbackTime) {
       response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
