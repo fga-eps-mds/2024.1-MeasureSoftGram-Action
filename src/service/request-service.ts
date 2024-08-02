@@ -147,7 +147,9 @@ export class RequestService {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError
-        console.error(`Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}`)
+        console.error(
+          `Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}, ${axiosError.response?.data}`
+        )
       } else {
         console.error('An unexpected error occurred.')
       }
