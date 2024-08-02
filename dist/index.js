@@ -13463,12 +13463,12 @@ class RequestService {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
         const data = {
             measures: [
-                { key: 'passed_tests' },
-                { key: 'test_builds' },
-                { key: 'test_coverage' },
-                { key: 'non_complex_file_density' },
-                { key: 'commented_file_density' },
-                { key: 'duplication_absense' },
+                // { key: 'passed_tests' },
+                // { key: 'test_builds' },
+                // { key: 'test_coverage' },
+                // { key: 'non_complex_file_density' },
+                // { key: 'commented_file_density' },
+                // { key: 'duplication_absense' },
                 { key: 'team_throughput' },
                 { key: 'ci_feedback_time' },
             ],
