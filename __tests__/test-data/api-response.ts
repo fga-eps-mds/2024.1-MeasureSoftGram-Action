@@ -1,3 +1,4 @@
+import { GithubMetricsResponse } from "../../src/github";
 import { ResponseListOrganizations, ResponseListProducts, ResponseListReleases, ResponseListRepositories } from "../../src/service/request-service";
 import { MetricsResponseAPI } from "../../src/sonarqube";
 
@@ -267,6 +268,31 @@ export const bodySonarCloudResponseMetrics: MetricsResponseAPI = {
       ],
       "language": "ts"
     }]
+}
+
+export const githubMetricsAPIResponse: GithubMetricsResponse = {
+  metrics: [
+    {
+      name: 'ci_feedback_time',
+      value: 350,
+      path: 'owner/repo'
+    }
+  ]
+}
+
+export const githubMetricsAPIThroughput: GithubMetricsResponse = {
+  metrics: [
+    {
+      name: 'total_issues', 
+      value: 2, 
+      path: "testOwner/testRepo"
+    }, 
+    {
+      name: 'resolved_issues', 
+      value: 1, 
+      path: "testOwner/testRepo"
+    }
+  ]
 }
 
 export const bodyListReleaseResponse: ResponseListReleases[] = [

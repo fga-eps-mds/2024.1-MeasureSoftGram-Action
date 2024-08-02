@@ -51,8 +51,8 @@ export interface ResponseListReleases {
     id: number;
     release_name: string;
     start_at: string;
-    created_by: number;
     end_at: string;
+    created_by: number;
 }
 
 
@@ -109,7 +109,7 @@ export interface ResponseCalculateTSQMI {
 }
 
 export class RequestService {
-    private MSGRAM_SERVICE_HOST = 'https://measuresoftgram-service-2023-2-0b266df334ad.herokuapp.com';
+    private MSGRAM_SERVICE_HOST = 'https://epsmsg.shop';
     private MSG_TOKEN = "'secret';"
     private baseUrl = `${this.MSGRAM_SERVICE_HOST}/api/v1/`;
 
@@ -126,6 +126,7 @@ export class RequestService {
     }
 
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
+        console.log("URL REQUES ", url," method: ", method, " data", data)
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -150,19 +151,18 @@ export class RequestService {
                 console.error('An unexpected error occurred.');
             }
         }
-
-        if (response?.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        return response; 
     }
 
     public async listOrganizations(): Promise<ResponseListOrganizations> {
         const url = `${this.baseUrl}organizations/`;
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listProducts(orgId: number): Promise<ResponseListProducts> {
@@ -174,13 +174,23 @@ export class RequestService {
     public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        return response?.data;
+        if (response) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/`;    
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        return response?.data;
+        if (response?.data) {
+            console.log(`Data received. Status code: ${response.status}`);
+            return response?.data.results;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
     
 
@@ -191,16 +201,23 @@ export class RequestService {
         return response?.data;
     }
 
+    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
+        await this.makeRequest('post', url, metrics);
+        return null;
+    }
+
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
+        // TODO const sonarMeasures = [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, ]
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
+        const data = { measures: [ {key: "team_throughput"}, {key: "ci_feedback_time"} ] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
 
     public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateCharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" } ] };
+        const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" }, {key: "functional_suitability"}] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
@@ -208,7 +225,7 @@ export class RequestService {
 
     public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSubcharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" } ] };
+        const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" }, {key: "functional_completeness"}] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
