@@ -13134,16 +13134,14 @@ class GithubAPIService {
         }
         const closed_response = await this.makeRequest(githubClosedUrl, this.token);
         const total_response = await this.makeRequest(githubAllUrl, this.token);
-        console.log(closed_response);
-        console.log(total_response);
         try {
             console.log(`github URL: ${githubClosedUrl}`);
             if (!closed_response || !total_response) {
                 throw new Error('Error getting project measures from Github. Please make sure you provided and token inputs.');
             }
             const total_issues = total_response.total_count;
-            const closed_issues = closed_response.total_count;
-            return [{ name: "total_issues", value: total_issues }, { name: "closed_issues", value: closed_issues }];
+            const resolved_issues = closed_response.total_count;
+            return [{ name: "total_issues", value: total_issues }, { name: "resolved_issues", value: resolved_issues }];
         }
         catch (err) {
             throw new Error('Error getting project measures from GitHub. Please make sure you provided the host and token inputs.');
@@ -13293,8 +13291,8 @@ const github_comment_1 = __importDefault(__nccwpck_require__(2670));
 async function run() {
     try {
         console.log("Iniciando coleta de medidas");
-        // if (!github.context.payload.pull_request) return;
-        // if (!github.context.payload.pull_request.merged) return;
+        //if (!github.context.payload.pull_request) return;
+        //if (!github.context.payload.pull_request.merged) return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
@@ -13458,19 +13456,19 @@ class RequestService {
     }
     async calculateMeasures(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }] };
+        const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, { key: "team_throughput" }, { key: "ci_feeedback_time" }] };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async calculateCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: [{ key: "reliability" }, { key: "maintainability" }] };
+        const data = { characteristics: [{ key: "reliability" }, { key: "maintainability" }, { key: "functional_suitability" }] };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async calculateSubCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: [{ key: "modifiability" }, { key: "testing_status" }] };
+        const data = { subcharacteristics: [{ key: "modifiability" }, { key: "testing_status" }, { key: "functional_completeness" }] };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }

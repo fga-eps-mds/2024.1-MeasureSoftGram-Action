@@ -95,9 +95,6 @@ export default class GithubAPIService {
     const closed_response = await this.makeRequest<any>(githubClosedUrl, this.token);
     const total_response= await this.makeRequest<any>(githubAllUrl, this.token); 
 
-    console.log(closed_response); 
-    console.log(total_response);
-    
     try {
       
       console.log(`github URL: ${githubClosedUrl}`)
@@ -109,9 +106,9 @@ export default class GithubAPIService {
       }
   
       const total_issues = total_response.total_count; 
-      const closed_issues = closed_response.total_count; 
+      const resolved_issues = closed_response.total_count; 
 
-      return [{name: "total_issues", value: total_issues}, {name: "closed_issues", value: closed_issues}]
+      return [{name: "total_issues", value: total_issues}, {name: "resolved_issues", value: resolved_issues}]
 
     } catch (err) {
       throw new Error(

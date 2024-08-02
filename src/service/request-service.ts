@@ -209,14 +209,14 @@ export class RequestService {
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
+        const data = { measures: [ { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, {key: "team_throughput"}, {key: "ci_feeedback_time"} ] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
 
     public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateCharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" } ] };
+        const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" }, {key: "functional_suitability"}] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
@@ -224,7 +224,7 @@ export class RequestService {
 
     public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSubcharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" } ] };
+        const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" }, {key: "functional_completeness"}] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
