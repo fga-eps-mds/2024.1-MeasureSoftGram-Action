@@ -17,11 +17,16 @@ O MeasureSoftGram é uma ferramenta robusta para gestão e avaliação de qualid
 ## Uso
 Para utilizar o MeasureSoftGram no seu repositório GitHub, crie um novo fluxo de trabalho do GitHub Actions (por exemplo, `msgram-analysis.yml`) no diretório `.github/workflows`. No novo arquivo, insira o seguinte código:
 
+Caso você queira coletar as métricas do github passando a flag `collectGithubMetrics`, é importante que seu workflow seja disparado ao completar o worflow de build utilizado na sua Release. Só assim será possível que a métrica de tempo de feedback da build da Release seja corretamente persistida.
+
 ```yaml
+name: MeasureSoftGram
+
 on:
-  pull_request:
-    branches: [ main ]
-    types: [ closed ]
+  workflow_run:
+    workflows: ["nome_do_seu_worflow_de_build"]
+    types:
+      - completed
 jobs:
   msgram_job:
     runs-on: ubuntu-latest
@@ -29,13 +34,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         - name: Action MeasureSoftGram
-          uses: fga-eps-mds/2023-1-MeasureSoftGram-Action@v2.1    
+          uses: fga-eps-mds/2023-1-MeasureSoftGram-Action@v2.1
         id: msgram
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }} # Token do GitHub
           sonarProjectKey: "" # (opcional) Chave do projeto no SonarQube
           msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }} # Token para acessar o serviço MeasureSoftGram
           productName: "" # Nome do produto
+          workflowName: 'nome_do_seu_worflow_de_build' # Nome do seu worflow que realiza a build da release
+          collectSonarqubeMetrics: false # Flag que determina se métricas do Sonarqube serão persistidas
+          collectGithubMetrics: true # Flag que determina se métricas do Github serão persistidas
+          usLabel: "US" # Label usada para se referir a Histórias de Usuário no seu projeto
 ```
 
 ## Entradas
@@ -49,6 +58,7 @@ jobs:
 | `workflowName` | não | Nome do do worflow de build da release |
 | `collectSonarqubeMetrics` | sim | Determina se serão coletadas métricas do Sonarqube |
 | `collectGithubMetrics` | sim | Determina se serão coletadas métricas do Github |
+| `usLabel` | não | Label usada para se referir a Histórias de Usuário no seu projeto |
 
 Lembre-se que é necessário que você disponha do seu token do GitHub para executar o MeasureSoftGram. Recomendamos o uso dos [Segredos do GitHub](https://docs.github.com/pt/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) para armazenar estas credenciais de forma segura.
 
