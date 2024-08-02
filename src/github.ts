@@ -171,7 +171,7 @@ export default class GithubAPIService {
     const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName)
     console.log({ ciFeedbackTime })
     if (ciFeedbackTime) {
-      response.metrics.concat(
+      response.metrics = response.metrics.concat(
         ciFeedbackTime.map(ciFeedbackTime => ({
           name: ciFeedbackTime.metric,
           value: ciFeedbackTime.value,
