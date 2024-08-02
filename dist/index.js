@@ -13094,7 +13094,7 @@ class GithubAPIService {
                     path: `${this.owner}/${this.repository}`,
                 }));
             }
-            console.log({ githubResponse: 'test' });
+            console.log({ githubResponse: response });
             return response;
         };
         this.host = 'https://api.github.com/';
@@ -13381,16 +13381,17 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
-        console.log("URL REQUES ", url, " method: ", method, " data", data);
+        console.log('URL REQUES ', url, ' method: ', method, ' data', data);
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: this.MSG_TOKEN
+                Authorization: this.MSG_TOKEN,
             },
             method,
             url,
             data,
         };
+        console.log('request body', data);
         axios_1.default.defaults.timeout = 50000; // await for heroku to wake up
         let response = null;
         try {
@@ -13459,19 +13460,34 @@ class RequestService {
     }
     async calculateMeasures(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, { key: "team_throughput" }, { key: "ci_feedback_time" }] };
+        const data = {
+            measures: [
+                { key: 'passed_tests' },
+                { key: 'test_builds' },
+                { key: 'test_coverage' },
+                { key: 'non_complex_file_density' },
+                { key: 'commented_file_density' },
+                { key: 'duplication_absense' },
+                { key: 'team_throughput' },
+                { key: 'ci_feedback_time' },
+            ],
+        };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async calculateCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: [{ key: "reliability" }, { key: "maintainability" }, { key: "functional_suitability" }] };
+        const data = {
+            characteristics: [{ key: 'reliability' }, { key: 'maintainability' }, { key: 'functional_suitability' }],
+        };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async calculateSubCharacteristics(orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: [{ key: "modifiability" }, { key: "testing_status" }, { key: "functional_completeness" }] };
+        const data = {
+            subcharacteristics: [{ key: 'modifiability' }, { key: 'testing_status' }, { key: 'functional_completeness' }],
+        };
         const response = await this.makeRequest('post', url, data);
         return response === null || response === void 0 ? void 0 : response.data;
     }

@@ -190,7 +190,7 @@ export default class GithubAPIService {
       )
     }
 
-    console.log({ githubResponse: 'test' })
+    console.log({ githubResponse: response })
     return response
   }
 }
