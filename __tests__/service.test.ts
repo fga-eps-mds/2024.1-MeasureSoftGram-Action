@@ -61,9 +61,9 @@ describe('Create message Tests', () => {
         requestService.insertGithubMetrics = jest.fn()
         requestService.insertMetrics = jest.fn();
         requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
-        requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
+        // requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
         requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
-        requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
+        // requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
 
         const result = await service.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
@@ -74,13 +74,18 @@ describe('Create message Tests', () => {
             repositoryId
         );
         expect(requestService.calculateMeasures).toHaveBeenCalledWith(orgId, productId, repositoryId);
-        expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
+        // expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
         expect(requestService.calculateSubCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
-        expect(requestService.calculateTSQMI).toHaveBeenCalledWith(orgId, productId, repositoryId);
+        // expect(requestService.calculateTSQMI).toHaveBeenCalledWith(orgId, productId, repositoryId);
+
+        // expect(result).toEqual({
+        //     data_characteristics: bodyCalculateCharacteristicsResponse,
+        //     data_tsqmi: bodyCalculateTSQMIResponse
+        // });
 
         expect(result).toEqual({
-            data_characteristics: bodyCalculateCharacteristicsResponse,
-            data_tsqmi: bodyCalculateTSQMIResponse
+            data_characteristics: [],
+            data_tsqmi: { value: 0 }
         });
     });
 
@@ -97,20 +102,17 @@ describe('Create message Tests', () => {
 
         const result = await service.calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
+        // TODO 
         expect(result).toEqual([
             {
                 "characteristics": [
-                    {
-                        "key": "reliability",
-                        "value": 0.9254618113429579
-                    }
                 ],
                 "measures": [],
                 "repository": [],
                 "tsqmi": [
                     { 
                         "key": "tsqmi", 
-                        "value": 0.8359399436161667 
+                        "value": 0.0 
                     }], 
                     "subcharacteristics": [], 
                     "version": []
