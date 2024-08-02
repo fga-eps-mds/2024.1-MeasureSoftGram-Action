@@ -13381,7 +13381,6 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
-        var _a;
         console.log('URL REQUES ', url, ' method: ', method, ' data', data);
         const config = {
             headers: {
@@ -13402,7 +13401,7 @@ class RequestService {
         catch (error) {
             if (axios_1.default.isAxiosError(error)) {
                 const axiosError = error;
-                console.error(`Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}, ${(_a = axiosError.response) === null || _a === void 0 ? void 0 : _a.data}`);
+                console.error(`Failed to ${method} data to the API. ${axiosError.message} at route ${config.url}}`);
             }
             else {
                 console.error('An unexpected error occurred.');
