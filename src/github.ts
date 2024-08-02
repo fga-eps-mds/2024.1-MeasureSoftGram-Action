@@ -123,11 +123,12 @@ export default class GithubAPIService {
 private async getCIFeedbackTime(
   baseUrl: string,
   token: string | null = null,
-  workflowName: string
-): Promise<{
+  workflowName: string,
+  beginDate: string // TODO
+): Promise<Array<{
   metric: string
   value: number
-} | null> {
+}> | null> {
   const url = `${baseUrl}/actions/runs`
   const response = await this.makeRequest<{
     workflow_runs: Array<WorkflowRun>
@@ -139,23 +140,26 @@ private async getCIFeedbackTime(
 
   const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? []
 
-  const mostRecentWorkflowRun = workflowRuns.find(run => run.name === workflowName)
+  const runs = workflowRuns.filter(run => run.name === workflowName && run.conclusion === 'success')
+  let sumFeedbackTimes = 0
 
-  if (!mostRecentWorkflowRun || mostRecentWorkflowRun.conclusion !== 'success') {
-    return null
+  runs.forEach((run) => {
+    const startedAt = new Date(run.created_at).getTime()
+    const completedAt = new Date(run.updated_at).getTime()
+    const feedbackTime = (completedAt - startedAt) / 1000
+    
+    sumFeedbackTimes += feedbackTime
+  })
+
+  return [{
+    metric: 'sum_ci_feedback_times',
+    value: sumFeedbackTimes,
+  },
+  {
+    metric: 'total_builds',
+    value: runs.length,
   }
-
-  console.log(mostRecentWorkflowRun)
-
-  const startedAt = new Date(mostRecentWorkflowRun.created_at).getTime()
-  const completedAt = new Date(mostRecentWorkflowRun.updated_at).getTime()
-
-  const feedbackTime = (completedAt - startedAt) / 1000
-
-  return {
-    metric: 'ci_feedback_time',
-    value: feedbackTime,
-  }
+  ]
 }
 
   public fetchGithubMetrics = async (workflowName: string) : Promise<GithubMetricsResponse> => {
@@ -166,14 +170,14 @@ private async getCIFeedbackTime(
     const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`
     const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
 
-    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName)
+    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName, this.beginDate);
 
     if (ciFeedbackTime) {
-      response.metrics.push({
+      response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
         name: ciFeedbackTime.metric,
         value: ciFeedbackTime.value,
         path: `${this.owner}/${this.repository}`,
-      })
+      })))
     }
 
     if(throughtput){
