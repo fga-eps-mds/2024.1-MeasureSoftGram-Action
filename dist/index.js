@@ -13295,7 +13295,7 @@ const service_1 = __importDefault(__nccwpck_require__(7686));
 const github_comment_1 = __importDefault(__nccwpck_require__(2670));
 async function run() {
     try {
-        console.log("Iniciando coleta de medidas");
+        console.log('Iniciando coleta de medidas');
         //if (!github.context.payload.pull_request) return;
         //if (!github.context.payload.pull_request.merged) return;
         console.log('Starting action with Service');
@@ -13306,7 +13306,7 @@ async function run() {
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
         const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false;
+        const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13326,12 +13326,10 @@ async function run() {
         console.log('test new action version');
         let githubMetrics = null;
         if (collectGithubMetrics) {
+            console.log('entrou collectGithubMetrics');
             githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         }
-        // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
-        // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
-        // const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
         if (!pull_request) {
             console.log('No pull request found.');
             return;
