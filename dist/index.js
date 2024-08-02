@@ -13080,6 +13080,7 @@ class GithubAPIService {
             const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
+            console.log({ ciFeedbackTime });
             if (ciFeedbackTime) {
                 response.metrics.concat(ciFeedbackTime.map(ciFeedbackTime => ({
                     name: ciFeedbackTime.metric,
@@ -13094,7 +13095,7 @@ class GithubAPIService {
                     path: `${this.owner}/${this.repository}`,
                 }));
             }
-            console.log({ githubResponse: response });
+            console.log({ githubResponse: JSON.stringify(response) });
             return response;
         };
         this.host = 'https://api.github.com/';

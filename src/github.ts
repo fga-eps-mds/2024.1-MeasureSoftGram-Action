@@ -169,7 +169,7 @@ export default class GithubAPIService {
     const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate)
 
     const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName)
-
+    console.log({ ciFeedbackTime })
     if (ciFeedbackTime) {
       response.metrics.concat(
         ciFeedbackTime.map(ciFeedbackTime => ({
@@ -190,7 +190,7 @@ export default class GithubAPIService {
       )
     }
 
-    console.log({ githubResponse: response })
+    console.log({ githubResponse: JSON.stringify(response) })
     return response
   }
 }
