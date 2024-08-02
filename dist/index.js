@@ -13074,14 +13074,14 @@ class GithubAPIService {
     constructor(info) {
         this.fetchGithubMetrics = async (workflowName) => {
             const response = {
-                metrics: []
+                metrics: [],
             };
             const baseUrl = `https://api.github.com`;
             const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
             if (ciFeedbackTime) {
-                response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
+                response.metrics.concat(ciFeedbackTime.map(ciFeedbackTime => ({
                     name: ciFeedbackTime.metric,
                     value: ciFeedbackTime.value,
                     path: `${this.owner}/${this.repository}`,
@@ -13094,6 +13094,7 @@ class GithubAPIService {
                     path: `${this.owner}/${this.repository}`,
                 }));
             }
+            console.log({ githubResponse: 'test' });
             return response;
         };
         this.host = 'https://api.github.com/';
@@ -13125,7 +13126,7 @@ class GithubAPIService {
     }
     async getThroughput(baseUrl, label, beginDate) {
         //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
-        //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
+        //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`;
         let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue state:closed updated:>${beginDate}`;
         let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue updated:>${beginDate}`;
         if (this.label) {
@@ -13141,7 +13142,10 @@ class GithubAPIService {
             }
             const total_issues = total_response.total_count;
             const resolved_issues = closed_response.total_count;
-            return [{ name: "total_issues", value: total_issues }, { name: "resolved_issues", value: resolved_issues }];
+            return [
+                { name: 'total_issues', value: total_issues },
+                { name: 'resolved_issues', value: resolved_issues },
+            ];
         }
         catch (err) {
             throw new Error('Error getting project measures from GitHub. Please make sure you provided the host and token inputs.');
@@ -13157,20 +13161,21 @@ class GithubAPIService {
         const workflowRuns = (_a = response.workflow_runs) !== null && _a !== void 0 ? _a : [];
         const runs = workflowRuns.filter(run => run.name === workflowName);
         let sumFeedbackTimes = 0;
-        runs.forEach((run) => {
+        runs.forEach(run => {
             const startedAt = new Date(run.created_at).getTime();
             const completedAt = new Date(run.updated_at).getTime();
             const feedbackTime = (completedAt - startedAt) / 1000;
             sumFeedbackTimes += feedbackTime;
         });
-        return [{
+        return [
+            {
                 metric: 'sum_ci_feedback_times',
                 value: sumFeedbackTimes,
             },
             {
                 metric: 'total_builds',
                 value: runs.length,
-            }
+            },
         ];
     }
 }
