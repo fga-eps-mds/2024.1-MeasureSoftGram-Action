@@ -100,20 +100,17 @@ export default class Service {
         
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
-
-        // TODO CORRIGIR ENDPOINTS DE CALCULOS NO SERVICE
-        // const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
-        // console.log('Calculated characteristics: \n', data_characteristics);
-
+    
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
         console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
 
-        // const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
-        // console.log('TSQMI: \n', data_tsqmi);
+        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
+        console.log('Calculated characteristics: \n', data_characteristics);
 
-        // return { data_characteristics, data_tsqmi };
+        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
+        console.log('TSQMI: \n', data_tsqmi);
 
-        return { data_characteristics: [], data_tsqmi: {value: 0} };
+        return { data_characteristics, data_tsqmi };
     }
 
     public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
