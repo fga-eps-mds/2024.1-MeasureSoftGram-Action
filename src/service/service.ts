@@ -111,6 +111,7 @@ export default class Service {
         const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.characteristics);
         console.log('Calculated characteristics: \n', data_characteristics);
 
+
         const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
         console.log('TSQMI: \n', data_tsqmi);
 
