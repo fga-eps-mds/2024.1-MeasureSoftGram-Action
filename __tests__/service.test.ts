@@ -97,6 +97,23 @@ describe('Create message Tests', () => {
 
         const result = await service.calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        expect(result).toEqual([{"repository":[],"version":[],"measures":[],"subcharacteristics":[],"characteristics":[{"key":"reliability","value":0.9254618113429579}],"tsqmi":[{"key":"tsqmi","value":0.8359399436161667}]}]);
+        expect(result).toEqual([
+            {
+                "characteristics": [
+                    {
+                        "key": "reliability",
+                        "value": 0.9254618113429579
+                    }
+                ],
+                "measures": [],
+                "repository": [],
+                "tsqmi": [
+                    { 
+                        "key": "tsqmi", 
+                        "value": 0.8359399436161667 
+                    }], 
+                    "subcharacteristics": [], 
+                    "version": []
+            }]);
     });
 });

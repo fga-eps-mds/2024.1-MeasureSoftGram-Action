@@ -153,7 +153,7 @@ describe('RequestService', () => {
     mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`)
       .reply(200, bodyCalculateSubcharacteristicsResponse);
 
-    const response = await service.calculateCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
+    const response = await service.calculateSubCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
@@ -183,26 +183,6 @@ describe('RequestService', () => {
     const listOrganizationsExecution = service.listOrganizations();
 
     await expect(listOrganizationsExecution).rejects.toThrow(errorMsg);
-  });
-
-  test('should throw an error if listRepositories API call returns no data', async () => {
-    const errorMsg = "No data received from the API.";
-
-    mockAxios.onGet().reply(() => [500, { message: 'API Error' }]);
-
-    const result = service.listRepositories(1, 1);
-
-    await expect(result).rejects.toThrow(errorMsg);
-  });
-
-  test('should throw an error if listReleases API call returns no data', async () => {
-    const errorMsg = "No data received from the API.";
-
-    mockAxios.onGet().reply(() => [500, { message: 'API Error' }]);
-
-    const result = service.listReleases(1, 1);
-
-    await expect(result).rejects.toThrow(errorMsg);
   });
 
   test('should throw error in case no data received from the API in listReleases', async () => {
