@@ -52,7 +52,7 @@ export async function run() {
       githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
     }
     
-    // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
+    //const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
     const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
     // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
 

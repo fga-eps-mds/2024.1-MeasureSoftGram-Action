@@ -11,27 +11,27 @@ export interface Info {
 
 export interface Measure{
     key: string
-    weigth: number
+    weight: number
     max_threshold: number
     min_threshold: number
-    metrics: { key: string }
+    metrics: { key: string }[]
 }
 
 export interface Subcharacteristics{
     key: string
-    weigth: number
+    weight: number
     measures: Measure[]
 }
 export interface Characteristic {
     key: string
-    weigth: number
+    weight: number
     subcharacteristics: Subcharacteristics[]
 }
 
 export interface PreConfig {
     id: number
     name: string, 
-    data: { characteristics: Characteristic[] }
+    data: { characteristics: Characteristic[]}
 }
 
 export class CalculateRequestData {

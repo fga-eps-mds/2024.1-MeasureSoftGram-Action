@@ -1,6 +1,6 @@
 import { RequestService } from '../src/service/request-service';
 import Service from '../src/service/service';
-import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics, githubMetricsAPIResponse } from './test-data/api-response';
+import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics, githubMetricsAPIResponse, preConfigResponse } from './test-data/api-response';
 
 describe('Create message Tests', () => {
     const owner = 'fga-eps-mds';
@@ -64,6 +64,7 @@ describe('Create message Tests', () => {
         requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
         requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
         requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
+        requestService.getCurrentPreConfig = jest.fn().mockResolvedValue(preConfigResponse); 
 
         const result = await service.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
@@ -73,9 +74,10 @@ describe('Create message Tests', () => {
             productId,
             repositoryId
         );
-        expect(requestService.calculateMeasures).toHaveBeenCalledWith(orgId, productId, repositoryId);
-        expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
-        expect(requestService.calculateSubCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId);
+ 
+       expect(requestService.calculateMeasures).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "passed_tests"}, {"key": "tests_builds"}]);
+        expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "reliability"}]);
+        expect(requestService.calculateSubCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "reliability"}]);    
         expect(requestService.calculateTSQMI).toHaveBeenCalledWith(orgId, productId, repositoryId);
 
         expect(result).toEqual({
@@ -94,6 +96,7 @@ describe('Create message Tests', () => {
         requestService.listProducts = jest.fn().mockResolvedValue(bodyListProductsResponse);
         requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
         requestService.listReleases = jest.fn().mockResolvedValue(bodyListReleaseResponse);
+        requestService.getCurrentPreConfig = jest.fn().mockResolvedValue(preConfigResponse); 
 
         const result = await service.calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
