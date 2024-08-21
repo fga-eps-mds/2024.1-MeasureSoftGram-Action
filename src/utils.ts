@@ -106,3 +106,5 @@ export function parsePreConfig(preConfig: PreConfig): CalculateRequestData{
     
     return response; 
 }
+
+ 

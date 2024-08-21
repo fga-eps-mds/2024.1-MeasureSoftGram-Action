@@ -13301,7 +13301,7 @@ async function run() {
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
         const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false;
+        const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13323,7 +13323,10 @@ async function run() {
         if (collectGithubMetrics) {
             githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         }
+        // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
+        // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
+        // const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
         if (!pull_request) {
             console.log('No pull request found.');
             return;
