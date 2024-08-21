@@ -123,7 +123,7 @@ describe('RequestService', () => {
     mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`)
       .reply(200, bodyCalculateMeasuresResponse);
 
-    const response = await service.calculateMeasures(orgId, productId, repoId);
+    const response = await service.calculateMeasures(orgId, productId, repoId, [{key: "passed_tests"}, {key: "test_builds"}]);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
@@ -138,7 +138,7 @@ describe('RequestService', () => {
     mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`)
       .reply(200, bodyCalculateCharacteristicsResponse);
 
-    const response = await service.calculateCharacteristics(orgId, productId, repoId);
+    const response = await service.calculateCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
@@ -153,7 +153,7 @@ describe('RequestService', () => {
     mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`)
       .reply(200, bodyCalculateSubcharacteristicsResponse);
 
-    const response = await service.calculateSubCharacteristics(orgId, productId, repoId);
+    const response = await service.calculateCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
