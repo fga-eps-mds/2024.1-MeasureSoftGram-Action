@@ -208,9 +208,8 @@ export class RequestService {
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
-        // TODO const sonarMeasures = [{ key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" }, ]
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [ {key: "team_throughput"}, {key: "ci_feedback_time"} ] };
+        const data = { measures: [ {key: "team_throughput"}, {key: "ci_feedback_time"}, { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
