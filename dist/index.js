@@ -13574,7 +13574,7 @@ class Service {
         }
         const currentPreConfig = await requestService.getCurrentPreConfig(orgId, productId);
         const currentPreConfigParsed = (0, utils_1.parsePreConfig)(currentPreConfig);
-        console.log("subchar", currentPreConfigParsed);
+        console.log("subchar", currentPreConfigParsed.measures);
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
         console.log('Calculated measures: \n', data_measures);
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
