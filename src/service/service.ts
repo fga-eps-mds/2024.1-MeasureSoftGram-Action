@@ -1,6 +1,7 @@
 import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 import { GithubMetricsResponse } from "../github";
+import { CalculateRequestData, parsePreConfig, PreConfig } from "../utils";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -98,14 +99,18 @@ export default class Service {
             await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
         }
         
-        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
+        const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
+        const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
+
+        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
         console.log('Calculated measures: \n', data_measures);
-    
-        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
+        
+        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
         console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
 
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
+        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.characteristics);
         console.log('Calculated characteristics: \n', data_characteristics);
+
 
         const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
         console.log('TSQMI: \n', data_tsqmi);
