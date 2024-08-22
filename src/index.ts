@@ -12,6 +12,7 @@ export async function run() {
   try {
 
     console.log("Iniciando coleta de medidas")
+    console.log("FIX/BUG020")
     //if (!github.context.payload.pull_request) return;
     //if (!github.context.payload.pull_request.merged) return;
 
