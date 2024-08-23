@@ -13564,6 +13564,7 @@ class Service {
     async createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
         console.log("metrics", metrics);
         console.log("github: ", githubMetrics);
+        console.log("create metrics");
         if (metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
