@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Action MeasureSoftGram
-        uses: ./@fix/BUG020
+        uses: fga-eps-mds/2024.1-MeasureSoftGram-Action@fix/BUG020
         id: msgram
         with:
           githubToken: ${{ secrets.API_TOKEN_DOC }} # Token do GitHub
