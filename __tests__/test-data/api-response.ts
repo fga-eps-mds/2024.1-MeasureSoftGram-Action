@@ -307,53 +307,49 @@ export const bodyListReleaseResponse: ResponseListReleases[] = [
 ]
 
 export const preConfigResponse: PreConfig = {
-    "id": 38,
-    "name": "MeasureSoftGram",
-    "data": {
-        "characteristics": [
-            {
-                "key": "reliability",
-                "weight": 39,
-                "subcharacteristics": [
-                    {
-                        "key": "reliability",
-                        "weight": 100,
-                        "measures": [
-                            {
-                                "key": "passed_tests",
-                                "weight": 33,
-                                "metrics": [
-                                    {
-                                        "key": "tests"
-                                    },
-                                    {
-                                        "key": "test_failures"
-                                    },
-                                    {
-                                        "key": "test_errors"
-                                    }
-                                ],
-                                "max_threshold": 1,
-                                "min_threshold": 0
-                            },
-                            {
-                                "key": "tests_builds",
-                                "weight": 33,
-                                "metrics": [
-                                    {
-                                        "key": "test_execution_time"
-                                    },
-                                    {
-                                        "key": "tests"
-                                    }
-                                ],
-                                "max_threshold": 300000,
-                                "min_threshold": 0
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
+  "characteristics": [
+      {
+          "key": "reliability",
+          "weight": 39,
+          "subcharacteristics": [
+              {
+                  "key": "reliability",
+                  "weight": 100,
+                  "measures": [
+                      {
+                          "key": "passed_tests",
+                          "weight": 33,
+                          "metrics": [
+                              {
+                                  "key": "tests"
+                              },
+                              {
+                                  "key": "test_failures"
+                              },
+                              {
+                                  "key": "test_errors"
+                              }
+                          ],
+                          "max_threshold": 1,
+                          "min_threshold": 0
+                      },
+                      {
+                          "key": "tests_builds",
+                          "weight": 33,
+                          "metrics": [
+                              {
+                                  "key": "test_execution_time"
+                              },
+                              {
+                                  "key": "tests"
+                              }
+                          ],
+                          "max_threshold": 300000,
+                          "min_threshold": 0
+                      }
+                  ]
+              }
+          ]
+      }
+  ]
 }
