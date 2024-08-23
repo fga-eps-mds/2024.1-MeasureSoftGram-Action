@@ -13291,7 +13291,6 @@ const github_comment_1 = __importDefault(__nccwpck_require__(2670));
 async function run() {
     try {
         console.log("Iniciando coleta de medidas");
-        console.log("FIX/BUG020");
         //if (!github.context.payload.pull_request) return;
         //if (!github.context.payload.pull_request.merged) return;
         console.log('Starting action with Service');
@@ -13319,7 +13318,6 @@ async function run() {
                 pullRequestNumber: null,
             });
         }
-        console.log('test new action version');
         let githubMetrics = null;
         if (collectGithubMetrics) {
             githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
@@ -13460,7 +13458,7 @@ class RequestService {
         const response = await this.makeRequest('get', url);
         if (response === null || response === void 0 ? void 0 : response.data) {
             console.log(`Data received. Status code: ${response.status}`);
-            return response === null || response === void 0 ? void 0 : response.data.results;
+            return response === null || response === void 0 ? void 0 : response.data.data;
         }
         else {
             throw new Error('No data received from the API.');
@@ -13574,6 +13572,7 @@ class Service {
             await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
         }
         const currentPreConfig = await requestService.getCurrentPreConfig(orgId, productId);
+        console.log("preconfig", currentPreConfig);
         const currentPreConfigParsed = (0, utils_1.parsePreConfig)(currentPreConfig);
         console.log("subchar", currentPreConfigParsed.measures);
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
@@ -13754,8 +13753,9 @@ function getGitHubInfo(repo, beginDate) {
 }
 exports.getGitHubInfo = getGitHubInfo;
 function parsePreConfig(preConfig) {
+    console.log(preConfig);
     let response = new CalculateRequestData();
-    for (const characteristic of preConfig.data.characteristics) {
+    for (const characteristic of preConfig.characteristics) {
         response.addCharacteristic(characteristic);
         for (const subcharacteristic of characteristic.subcharacteristics) {
             response.addSubcharacteristic(subcharacteristic);

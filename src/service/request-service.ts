@@ -212,7 +212,7 @@ export class RequestService {
         const response = await this.makeRequest('get', url); 
         if (response?.data) {
             console.log(`Data received. Status code: ${response.status}`);
-            return response?.data.results;
+            return response?.data.data;
         } else {
             throw new Error('No data received from the API.');
         }

@@ -101,6 +101,7 @@ export default class Service {
         }
         
         const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
+        console.log("preconfig", currentPreConfig); 
         const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
         console.log("subchar", currentPreConfigParsed.measures);
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);

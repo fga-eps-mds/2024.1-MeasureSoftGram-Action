@@ -12,7 +12,6 @@ export async function run() {
   try {
 
     console.log("Iniciando coleta de medidas")
-    console.log("FIX/BUG020")
     //if (!github.context.payload.pull_request) return;
     //if (!github.context.payload.pull_request.merged) return;
 
@@ -45,7 +44,6 @@ export async function run() {
       })
     }
     
-    console.log('test new action version')
     
     let githubMetrics: GithubMetricsResponse | null = null
     

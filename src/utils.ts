@@ -29,9 +29,7 @@ export interface Characteristic {
 }
 
 export interface PreConfig {
-    id: number
-    name: string, 
-    data: { characteristics: Characteristic[]}
+    characteristics: Characteristic[]
 }
 
 export class CalculateRequestData {
@@ -92,9 +90,10 @@ export function getGitHubInfo(repo: {owner: string, repo: string }, beginDate: s
 }
 
 export function parsePreConfig(preConfig: PreConfig): CalculateRequestData{
+    console.log(preConfig);
     let response = new CalculateRequestData();
 
-    for(const characteristic of preConfig.data.characteristics){
+    for(const characteristic of preConfig.characteristics){
        response.addCharacteristic(characteristic); 
         for(const subcharacteristic of characteristic.subcharacteristics){
             response.addSubcharacteristic(subcharacteristic);
