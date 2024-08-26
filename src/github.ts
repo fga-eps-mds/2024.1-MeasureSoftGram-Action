@@ -84,8 +84,6 @@ export default class GithubAPIService {
       }[]
     | null
   > {
-    //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
-    //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`;
     let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue state:closed updated:>${beginDate}`
     let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue updated:>${beginDate}`
 
