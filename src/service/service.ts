@@ -85,9 +85,6 @@ export default class Service {
     }
 
     public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
-        console.log("metrics", metrics); 
-        console.log("github: ", githubMetrics);
-        console.log("create metrics"); 
         
         if(metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
@@ -101,9 +98,7 @@ export default class Service {
         }
         
         const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
-        console.log("preconfig", currentPreConfig); 
         const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
-        console.log("subchar", currentPreConfigParsed.measures);
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
         console.log('Calculated measures: \n', data_measures);
         
