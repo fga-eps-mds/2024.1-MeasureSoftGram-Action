@@ -13074,14 +13074,14 @@ class GithubAPIService {
     constructor(info) {
         this.fetchGithubMetrics = async (workflowName) => {
             const response = {
-                metrics: []
+                metrics: [],
             };
             const baseUrl = `https://api.github.com`;
             const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`;
             const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate);
             const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
             if (ciFeedbackTime) {
-                response.metrics = response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
+                response.metrics = response.metrics.concat(ciFeedbackTime.map(ciFeedbackTime => ({
                     name: ciFeedbackTime.metric,
                     value: ciFeedbackTime.value,
                     path: `${this.owner}/${this.repository}`,
@@ -13124,8 +13124,6 @@ class GithubAPIService {
         }
     }
     async getThroughput(baseUrl, label, beginDate) {
-        //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
-        //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
         let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue state:closed updated:>${beginDate}`;
         let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue updated:>${beginDate}`;
         if (this.label) {
@@ -13141,7 +13139,10 @@ class GithubAPIService {
             }
             const total_issues = total_response.total_count;
             const resolved_issues = closed_response.total_count;
-            return [{ name: "total_issues", value: total_issues }, { name: "resolved_issues", value: resolved_issues }];
+            return [
+                { name: 'total_issues', value: total_issues },
+                { name: 'resolved_issues', value: resolved_issues },
+            ];
         }
         catch (err) {
             throw new Error('Error getting project measures from GitHub. Please make sure you provided the host and token inputs.');
@@ -13165,7 +13166,7 @@ class GithubAPIService {
                 totalRuns = response.total_count;
             }
             const runs = workflowRuns.filter(run => run.name === workflowName);
-            runs.forEach((run) => {
+            runs.forEach(run => {
                 const startedAt = new Date(run.created_at).getTime();
                 const completedAt = new Date(run.updated_at).getTime();
                 const feedbackTime = (completedAt - startedAt) / 1000;
@@ -13182,7 +13183,7 @@ class GithubAPIService {
             {
                 metric: 'total_builds',
                 value: totalBuilds,
-            }
+            },
         ];
     }
 }
@@ -13302,10 +13303,11 @@ const service_1 = __importDefault(__nccwpck_require__(7686));
 const github_comment_1 = __importDefault(__nccwpck_require__(2670));
 async function run() {
     try {
-        console.log("Iniciando coleta de medidas");
-        //if (!github.context.payload.pull_request) return;
-        //if (!github.context.payload.pull_request.merged) return;
-        console.log('Starting action with Service');
+        console.log("Iniciando coleta de métricas");
+        if (!github.context.payload.pull_request)
+            return;
+        if (!github.context.payload.pull_request.merged)
+            return;
         const { repo } = github.context;
         const currentDate = new Date();
         const info = (0, utils_1.getInfo)(repo);
@@ -13334,10 +13336,7 @@ async function run() {
         if (collectGithubMetrics) {
             githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         }
-        //const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate, githubMetrics)
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
-        // const githubMetrics = await githubMeasure.fetchGithubMetrics(); 
-        // const result = await service.calculateResults(requestService, metrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
         if (!pull_request) {
             console.log('No pull request found.');
             return;
@@ -13572,9 +13571,6 @@ class Service {
         return { startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId };
     }
     async createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
-        console.log("metrics", metrics);
-        console.log("github: ", githubMetrics);
-        console.log("create metrics");
         if (metrics !== null) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
@@ -13584,9 +13580,7 @@ class Service {
             await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
         }
         const currentPreConfig = await requestService.getCurrentPreConfig(orgId, productId);
-        console.log("preconfig", currentPreConfig);
         const currentPreConfigParsed = (0, utils_1.parsePreConfig)(currentPreConfig);
-        console.log("subchar", currentPreConfigParsed.measures);
         const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
         console.log('Calculated measures: \n', data_measures);
         const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
@@ -13765,7 +13759,6 @@ function getGitHubInfo(repo, beginDate) {
 }
 exports.getGitHubInfo = getGitHubInfo;
 function parsePreConfig(preConfig) {
-    console.log(preConfig);
     let response = new CalculateRequestData();
     for (const characteristic of preConfig.characteristics) {
         response.addCharacteristic(characteristic);
