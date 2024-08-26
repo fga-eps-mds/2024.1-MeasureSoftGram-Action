@@ -13149,27 +13149,39 @@ class GithubAPIService {
     }
     async getCIFeedbackTime(baseUrl, token = null, workflowName) {
         var _a;
-        const url = `${baseUrl}/actions/runs`;
-        const response = await this.makeRequest(url, token);
-        if (response === null) {
-            return null;
-        }
-        const workflowRuns = (_a = response.workflow_runs) !== null && _a !== void 0 ? _a : [];
-        const runs = workflowRuns.filter(run => run.name === workflowName);
+        let page = 1;
+        const perPage = 100;
         let sumFeedbackTimes = 0;
-        runs.forEach((run) => {
-            const startedAt = new Date(run.created_at).getTime();
-            const completedAt = new Date(run.updated_at).getTime();
-            const feedbackTime = (completedAt - startedAt) / 1000;
-            sumFeedbackTimes += feedbackTime;
-        });
-        return [{
+        let totalBuilds = 0;
+        let totalRuns = 0;
+        do {
+            const url = `${baseUrl}/actions/runs?per_page=${perPage}&page=${page}`;
+            const response = await this.makeRequest(url, token);
+            if (response === null) {
+                return null;
+            }
+            const workflowRuns = (_a = response.workflow_runs) !== null && _a !== void 0 ? _a : [];
+            if (page === 1) {
+                totalRuns = response.total_count;
+            }
+            const runs = workflowRuns.filter(run => run.name === workflowName);
+            runs.forEach((run) => {
+                const startedAt = new Date(run.created_at).getTime();
+                const completedAt = new Date(run.updated_at).getTime();
+                const feedbackTime = (completedAt - startedAt) / 1000;
+                sumFeedbackTimes += feedbackTime;
+            });
+            totalBuilds += runs.length;
+            page++;
+        } while ((page - 1) * perPage < totalRuns);
+        return [
+            {
                 metric: 'sum_ci_feedback_times',
                 value: sumFeedbackTimes,
             },
             {
                 metric: 'total_builds',
-                value: runs.length,
+                value: totalBuilds,
             }
         ];
     }
