@@ -90,7 +90,6 @@ export function getGitHubInfo(repo: {owner: string, repo: string }, beginDate: s
 }
 
 export function parsePreConfig(preConfig: PreConfig): CalculateRequestData{
-    console.log(preConfig);
     let response = new CalculateRequestData();
 
     for(const characteristic of preConfig.characteristics){
