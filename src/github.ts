@@ -125,38 +125,61 @@ private async getCIFeedbackTime(
   metric: string
   value: number
 }> | null> {
-  const url = `${baseUrl}/actions/runs`
-  const response = await this.makeRequest<{
-    workflow_runs: Array<WorkflowRun>
-  }>(url, token)
+  let page = 1;
+  const perPage = 100;
+  let sumFeedbackTimes = 0;
+  let totalBuilds = 0;
+  let totalRuns: number | null = 0;
 
-  if (response === null) {
-    return null
-  }
+  do {
+    const url = `${baseUrl}/actions/runs?per_page=${perPage}&page=${page}`;
+    const response = await this.makeRequest<{
+      total_count: number;
+      workflow_runs: Array<WorkflowRun>;
+    }>(url, token);
 
-  const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? []
+    if (response === null) {
+      return null;
+    }
 
-  const runs = workflowRuns.filter(run => run.name === workflowName)
-  let sumFeedbackTimes = 0
-
-  runs.forEach((run) => {
-    const startedAt = new Date(run.created_at).getTime()
-    const completedAt = new Date(run.updated_at).getTime()
-    const feedbackTime = (completedAt - startedAt) / 1000
+    const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? [];
     
-    sumFeedbackTimes += feedbackTime
-  })
+   
+    if (page === 1) {
+      totalRuns = response.total_count;
+    }
 
-  return [{
-    metric: 'sum_ci_feedback_times',
-    value: sumFeedbackTimes,
-  },
-  {
-    metric: 'total_builds',
-    value: runs.length,
-  }
-  ]
+   
+    const runs = workflowRuns.filter(run => run.name === workflowName);
+
+   
+    runs.forEach((run) => {
+      const startedAt = new Date(run.created_at).getTime();
+      const completedAt = new Date(run.updated_at).getTime();
+      const feedbackTime = (completedAt - startedAt) / 1000;
+      
+      sumFeedbackTimes += feedbackTime;
+    });
+
+   
+    totalBuilds += runs.length;
+   
+    page++;
+
+  } while ((page - 1) * perPage < totalRuns);
+
+  return [
+    {
+      metric: 'sum_ci_feedback_times',
+      value: sumFeedbackTimes,
+    },
+    {
+      metric: 'total_builds',
+      value: totalBuilds,
+    }
+  ];
 }
+
 
   public fetchGithubMetrics = async (workflowName: string) : Promise<GithubMetricsResponse> => {
     const response: GithubMetricsResponse = {
