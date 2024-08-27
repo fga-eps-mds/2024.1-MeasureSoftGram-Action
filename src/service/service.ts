@@ -1,7 +1,7 @@
 import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 import { GithubMetricsResponse } from "../github";
-import { CalculateRequestData, parsePreConfig, PreConfig } from "../utils";
+import { parsePreConfig, PreConfig } from "../utils";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];

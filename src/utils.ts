@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import GithubComment from './github/github-comment';
 
 export interface Info {
     project: {
@@ -90,7 +89,7 @@ export function getGitHubInfo(repo: {owner: string, repo: string }, beginDate: s
 }
 
 export function parsePreConfig(preConfig: PreConfig): CalculateRequestData{
-    let response = new CalculateRequestData();
+    const response = new CalculateRequestData();
 
     for(const characteristic of preConfig.characteristics){
        response.addCharacteristic(characteristic); 

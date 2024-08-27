@@ -51,8 +51,6 @@ export default class GithubAPIService {
     this.repository = info.repo
     this.beginDate = info.beginDate
 
-    const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
-
     console.log(`Github repository: ${this.repository}`)
     console.log(`Github: ${this.owner}`)
   }
@@ -92,8 +90,8 @@ export default class GithubAPIService {
       githubAllUrl += ` label:${this.label}`
     }
 
-    const closed_response = await this.makeRequest<any>(githubClosedUrl, this.token)
-    const total_response = await this.makeRequest<any>(githubAllUrl, this.token)
+    const closed_response = await this.makeRequest<Record<string, number>>(githubClosedUrl, this.token)
+    const total_response = await this.makeRequest<Record<string, number>>(githubAllUrl, this.token)
 
     try {
       console.log(`github URL: ${githubClosedUrl}`)

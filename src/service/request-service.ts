@@ -201,7 +201,7 @@ export class RequestService {
         return response?.data;
     }
 
-    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+    public async insertGithubMetrics(metrics: object, orgId: number, productId: number, repoId: number): Promise<null> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
         await this.makeRequest('post', url, metrics);
         return null;
