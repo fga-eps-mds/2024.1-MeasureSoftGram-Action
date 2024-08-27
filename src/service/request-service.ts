@@ -210,12 +210,8 @@ export class RequestService {
     public async getCurrentPreConfig(orgId: number, productId: number) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
         const response = await this.makeRequest('get', url); 
-        if (response?.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response?.data.data;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response?.status}`);
+        return response?.data?.data;
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {

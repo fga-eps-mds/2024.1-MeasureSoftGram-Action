@@ -81,6 +81,13 @@ describe('RequestService', () => {
     expect(response).toEqual(releases);
   });
 
+  test('should get preconfig', async () => {
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/current/pre-config`).reply(200, { data: 'success' });
+
+    const response = await service.getCurrentPreConfig(1, 3);
+
+    expect(response).toEqual('success');
+  });
 
   test('should successfully insert metrics', async () => {
     const metrics = '{"metric1":"value1", "metric2":"value2"}'; // a JSON string
