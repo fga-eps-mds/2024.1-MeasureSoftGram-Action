@@ -13445,13 +13445,8 @@ class RequestService {
     async listReleases(orgId, productId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;
         const response = await this.makeRequest('get', url);
-        if (response === null || response === void 0 ? void 0 : response.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response === null || response === void 0 ? void 0 : response.data.results;
-        }
-        else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
+        return response === null || response === void 0 ? void 0 : response.data.results;
     }
     async insertMetrics(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
