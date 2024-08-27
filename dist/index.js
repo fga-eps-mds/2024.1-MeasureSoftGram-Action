@@ -13465,15 +13465,11 @@ class RequestService {
         return null;
     }
     async getCurrentPreConfig(orgId, productId) {
+        var _a;
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`;
         const response = await this.makeRequest('get', url);
-        if (response === null || response === void 0 ? void 0 : response.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response === null || response === void 0 ? void 0 : response.data.data;
-        }
-        else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
+        return (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.data;
     }
     async calculateMeasures(orgId, productId, repoId, measuresToCalculate) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
