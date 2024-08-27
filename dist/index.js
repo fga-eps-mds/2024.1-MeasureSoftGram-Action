@@ -13102,7 +13102,6 @@ class GithubAPIService {
         this.label = info.label;
         this.repository = info.repo;
         this.beginDate = info.beginDate;
-        const tokenb64 = Buffer.from(`${this.token}:`).toString('base64');
         console.log(`Github repository: ${this.repository}`);
         console.log(`Github: ${this.owner}`);
     }
@@ -13238,6 +13237,7 @@ class GithubComment {
       ###`.trim().replace(/^\s+/gm, '');
         return message;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async createOrUpdateComment(pullRequestNumber, message, octokit) {
         // Check if a comment already exists on the pull request
         const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
@@ -13759,7 +13759,7 @@ function getGitHubInfo(repo, beginDate) {
 }
 exports.getGitHubInfo = getGitHubInfo;
 function parsePreConfig(preConfig) {
-    let response = new CalculateRequestData();
+    const response = new CalculateRequestData();
     for (const characteristic of preConfig.characteristics) {
         response.addCharacteristic(characteristic);
         for (const subcharacteristic of characteristic.subcharacteristics) {
