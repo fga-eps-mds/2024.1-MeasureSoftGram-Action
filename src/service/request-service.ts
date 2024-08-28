@@ -204,11 +204,7 @@ export class RequestService {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
         const response = await this.makeRequest('get', url); 
         console.log(`Data received. Status code: ${response?.status}`);
-<<<<<<< Updated upstream
         return response?.data?.data;
-=======
-        return response?.data.data;
->>>>>>> Stashed changes
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {
