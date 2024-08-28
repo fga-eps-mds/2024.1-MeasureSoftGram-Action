@@ -174,12 +174,9 @@ export class RequestService {
     public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        if (response) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response?.data;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response?.status}`);
+        return response?.data;
+
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
@@ -207,12 +204,15 @@ export class RequestService {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
         const response = await this.makeRequest('get', url); 
         console.log(`Data received. Status code: ${response?.status}`);
+<<<<<<< Updated upstream
         return response?.data?.data;
+=======
+        return response?.data.data;
+>>>>>>> Stashed changes
     }
 
     public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        //const data = { measures: [ {key: "team_throughput"}, {key: "ci_feedback_time"}, { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
         const data = { measures: measuresToCalculate };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
@@ -220,7 +220,6 @@ export class RequestService {
     
     public async calculateCharacteristics(orgId: number, productId: number, repoId: number, characteristicToCalculate: {key: string}[]): Promise<ResponseCalculateCharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        //const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" }, {key: "functional_suitability"}] };
         const data = { characteristics: characteristicToCalculate };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
