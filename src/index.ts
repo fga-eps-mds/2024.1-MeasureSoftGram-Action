@@ -11,11 +11,10 @@ import GithubComment from './github/github-comment';
 export async function run() {
   try {
 
-    console.log("Iniciando coleta de medidas")
-    //if (!github.context.payload.pull_request) return;
-    //if (!github.context.payload.pull_request.merged) return;
+    console.log("Iniciando coleta de métricas")
+    if (!github.context.payload.pull_request) return;
+    if (!github.context.payload.pull_request.merged) return;
 
-    console.log('Starting action with Service');
     const { repo } = github.context;
     const currentDate = new Date();
     const info:Info = getInfo(repo);
@@ -23,7 +22,7 @@ export async function run() {
     const productName = core.getInput('productName');
     const workflowName = core.getInput('workflowName')
     const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false
-    const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false
+    const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false
     const service = new Service(repo.repo, repo.owner, productName, currentDate);
     const requestService = new RequestService();
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -44,7 +43,6 @@ export async function run() {
       })
     }
     
-    console.log('test new action version')
     
     let githubMetrics: GithubMetricsResponse | null = null
     

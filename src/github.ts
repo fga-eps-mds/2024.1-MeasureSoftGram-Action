@@ -1,5 +1,5 @@
-import axios, { AxiosResponse } from 'axios';
-import { GitHubInfo } from './utils';
+import axios, { AxiosResponse } from 'axios'
+import { GitHubInfo } from './utils'
 
 export interface GithubMetricsResponse {
   metrics: Array<{
@@ -44,18 +44,15 @@ export default class GithubAPIService {
   beginDate: string
 
   constructor(info: GitHubInfo) {
-    this.host ='https://api.github.com/'
+    this.host = 'https://api.github.com/'
     this.token = info.token
     this.owner = info.owner
     this.label = info.label
     this.repository = info.repo
     this.beginDate = info.beginDate
 
-    const tokenb64 = Buffer.from(`${this.token}:`).toString('base64')
-
     console.log(`Github repository: ${this.repository}`)
     console.log(`Github: ${this.owner}`)
-
   }
   private async makeRequest<T>(url: string, token: string | null = null): Promise<T | null> {
     const headers: { [key: string]: string } = {
@@ -75,114 +72,134 @@ export default class GithubAPIService {
   }
 
   private async getThroughput(
-    baseUrl: string, 
-    label: string | null, 
+    baseUrl: string,
+    label: string | null,
     beginDate: string
-  ): Promise<{
-    name: string, 
-    value: number
-  }[] | null>{
-    //const githubClosedUrl = `${baseUrl}/issues?state=closed&labels=${label}&since=${beginDate}`
-    //const githubAllUrl = `${baseUrl}/issues?state=all&labels=${label}&since=${beginDate}`; 
+  ): Promise<
+    | {
+        name: string
+        value: number
+      }[]
+    | null
+  > {
     let githubClosedUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue state:closed updated:>${beginDate}`
     let githubAllUrl = `${baseUrl}/search/issues?q=repo:${this.owner}/${this.repository} is:issue updated:>${beginDate}`
 
-    if(this.label){
+    if (this.label) {
       githubClosedUrl += ` label:${this.label}`
       githubAllUrl += ` label:${this.label}`
-    } 
+    }
 
-    const closed_response = await this.makeRequest<any>(githubClosedUrl, this.token);
-    const total_response= await this.makeRequest<any>(githubAllUrl, this.token); 
+    const closed_response = await this.makeRequest<Record<string, number>>(githubClosedUrl, this.token)
+    const total_response = await this.makeRequest<Record<string, number>>(githubAllUrl, this.token)
 
     try {
-      
       console.log(`github URL: ${githubClosedUrl}`)
-  
+
       if (!closed_response || !total_response) {
-        throw new Error(
-          'Error getting project measures from Github. Please make sure you provided and token inputs.'
-        )
+        throw new Error('Error getting project measures from Github. Please make sure you provided and token inputs.')
       }
-  
-      const total_issues = total_response.total_count; 
-      const resolved_issues = closed_response.total_count; 
 
-      return [{name: "total_issues", value: total_issues}, {name: "resolved_issues", value: resolved_issues}]
+      const total_issues = total_response.total_count
+      const resolved_issues = closed_response.total_count
 
+      return [
+        { name: 'total_issues', value: total_issues },
+        { name: 'resolved_issues', value: resolved_issues },
+      ]
     } catch (err) {
       throw new Error(
         'Error getting project measures from GitHub. Please make sure you provided the host and token inputs.'
       )
-  }
-}
-
-private async getCIFeedbackTime(
-  baseUrl: string,
-  token: string | null = null,
-  workflowName: string,
-): Promise<Array<{
-  metric: string
-  value: number
-}> | null> {
-  const url = `${baseUrl}/actions/runs`
-  const response = await this.makeRequest<{
-    workflow_runs: Array<WorkflowRun>
-  }>(url, token)
-
-  if (response === null) {
-    return null
+    }
   }
 
-  const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? []
+  private async getCIFeedbackTime(
+    baseUrl: string,
+    token: string | null = null,
+    workflowName: string
+  ): Promise<Array<{
+    metric: string
+    value: number
+  }> | null> {
+    let page = 1
+    const perPage = 100
+    let sumFeedbackTimes = 0
+    let totalBuilds = 0
+    let totalRuns: number | null = 0
 
-  const runs = workflowRuns.filter(run => run.name === workflowName)
-  let sumFeedbackTimes = 0
+    do {
+      const url = `${baseUrl}/actions/runs?per_page=${perPage}&page=${page}`
+      const response = await this.makeRequest<{
+        total_count: number
+        workflow_runs: Array<WorkflowRun>
+      }>(url, token)
 
-  runs.forEach((run) => {
-    const startedAt = new Date(run.created_at).getTime()
-    const completedAt = new Date(run.updated_at).getTime()
-    const feedbackTime = (completedAt - startedAt) / 1000
-    
-    sumFeedbackTimes += feedbackTime
-  })
+      if (response === null) {
+        return null
+      }
 
-  return [{
-    metric: 'sum_ci_feedback_times',
-    value: sumFeedbackTimes,
-  },
-  {
-    metric: 'total_builds',
-    value: runs.length,
+      const workflowRuns: Array<WorkflowRun> = response.workflow_runs ?? []
+
+      if (page === 1) {
+        totalRuns = response.total_count
+      }
+
+      const runs = workflowRuns.filter(run => run.name === workflowName)
+
+      runs.forEach(run => {
+        const startedAt = new Date(run.created_at).getTime()
+        const completedAt = new Date(run.updated_at).getTime()
+        const feedbackTime = (completedAt - startedAt) / 1000
+
+        sumFeedbackTimes += feedbackTime
+      })
+
+      totalBuilds += runs.length
+
+      page++
+    } while ((page - 1) * perPage < totalRuns)
+
+    return [
+      {
+        metric: 'sum_ci_feedback_times',
+        value: sumFeedbackTimes,
+      },
+      {
+        metric: 'total_builds',
+        value: totalBuilds,
+      },
+    ]
   }
-  ]
-}
-
-  public fetchGithubMetrics = async (workflowName: string) : Promise<GithubMetricsResponse> => {
+  public fetchGithubMetrics = async (workflowName: string): Promise<GithubMetricsResponse> => {
     const response: GithubMetricsResponse = {
-      metrics: []
+      metrics: [],
     }
     const baseUrl = `https://api.github.com`
     const urlCi = `${baseUrl}/repos/${this.owner}/${this.repository}`
-    const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate); 
+    const throughtput = await this.getThroughput(baseUrl, this.label, this.beginDate)
 
-    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName);
+    const ciFeedbackTime = await this.getCIFeedbackTime(urlCi, this.token, workflowName)
 
     if (ciFeedbackTime) {
-      response.metrics = response.metrics.concat(ciFeedbackTime.map((ciFeedbackTime) => ({
-        name: ciFeedbackTime.metric,
-        value: ciFeedbackTime.value,
-        path: `${this.owner}/${this.repository}`,
-      })))
+      response.metrics = response.metrics.concat(
+        ciFeedbackTime.map(ciFeedbackTime => ({
+          name: ciFeedbackTime.metric,
+          value: ciFeedbackTime.value,
+          path: `${this.owner}/${this.repository}`,
+        }))
+      )
     }
 
-    if(throughtput){
-      throughtput.forEach(githubmetric => response.metrics.push({
-        name: githubmetric.name,
-        value: githubmetric.value, 
-        path: `${this.owner}/${this.repository}`,
-      }))
+    if (throughtput) {
+      throughtput.forEach(githubmetric =>
+        response.metrics.push({
+          name: githubmetric.name,
+          value: githubmetric.value,
+          path: `${this.owner}/${this.repository}`,
+        })
+      )
     }
-    return response; 
+    return response
   }
 }

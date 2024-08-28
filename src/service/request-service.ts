@@ -174,23 +174,16 @@ export class RequestService {
     public async listRepositories(orgId: number, productId: number): Promise<ResponseListRepositories> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/`;
         const response = await this.makeRequest('get', url);
-        if (response) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response?.data;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response?.status}`);
+        return response?.data;
+
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
         const response =  await this.makeRequest('get', url);
-        if (response?.data) {
-            console.log(`Data received. Status code: ${response.status}`);
-            return response?.data.results;
-        } else {
-            throw new Error('No data received from the API.');
-        }
+        console.log(`Data received. Status code: ${response?.status}`);
+        return response?.data.results;
     }
     
 
@@ -201,34 +194,39 @@ export class RequestService {
         return response?.data;
     }
 
-    public async insertGithubMetrics(metrics: Record<string,any>, orgId: number, productId: number, repoId: number): Promise<null> {
+    public async insertGithubMetrics(metrics: object, orgId: number, productId: number, repoId: number): Promise<null> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
         await this.makeRequest('post', url, metrics);
         return null;
     }
 
-    public async calculateMeasures(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
+    public async getCurrentPreConfig(orgId: number, productId: number) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
+        const response = await this.makeRequest('get', url); 
+        console.log(`Data received. Status code: ${response?.status}`);
+        return response?.data?.data;
+    }
+
+    public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: [ {key: "team_throughput"}, {key: "ci_feedback_time"}, { key: "passed_tests" }, { key: "test_builds" }, { key: "test_coverage" }, { key: "non_complex_file_density" }, { key: "commented_file_density" }, { key: "duplication_absense" } ] };
+        const data = { measures: measuresToCalculate };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
-
-    public async calculateCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateCharacteristics[]> {
+    
+    public async calculateCharacteristics(orgId: number, productId: number, repoId: number, characteristicToCalculate: {key: string}[]): Promise<ResponseCalculateCharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: [ { key: "reliability" }, { key: "maintainability" }, {key: "functional_suitability"}] };
+        const data = { characteristics: characteristicToCalculate };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
-    
 
-    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateSubcharacteristics[]> {
+    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number, subcharacteristicToCalculate: {key: string}[]): Promise<ResponseCalculateSubcharacteristics[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: [ { key: "modifiability" }, { key: "testing_status" }, {key: "functional_completeness"}] };
+        const data = { subcharacteristics: subcharacteristicToCalculate };
         const response = await this.makeRequest('post', url, data);
         return response?.data;
     }
-    
 
     public async calculateTSQMI(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateTSQMI> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
