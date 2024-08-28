@@ -12,8 +12,6 @@ export async function run() {
   try {
 
     console.log("Iniciando coleta de métricas")
-    if (!github.context.payload.pull_request) return;
-    if (!github.context.payload.pull_request.merged) return;
 
     const { repo } = github.context;
     const currentDate = new Date();
@@ -52,16 +50,13 @@ export async function run() {
     
     const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
 
-    if (!pull_request) {
-      console.log('No pull request found.')
-      return
+    if (pull_request) {
+      console.log('Creating comment')
+      const githubComment = new GithubComment()
+      const message = githubComment.createMessage(result)
+    
+      await githubComment.createOrUpdateComment(pull_request.number, message, octokit)
     }
-
-    console.log('Creating comment')
-    const githubComment = new GithubComment()
-    const message = githubComment.createMessage(result)
-
-    await githubComment.createOrUpdateComment(pull_request.number, message, octokit)
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.setFailed(error.message)
