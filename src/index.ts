@@ -54,15 +54,16 @@ export async function run() {
       console.log('Creating comment')
       const githubComment = new GithubComment()
       const message = githubComment.createMessage(result)
-    }
+    
       await githubComment.createOrUpdateComment(pull_request.number, message, octokit)
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        core.setFailed(error.message)
-      } else {
-        core.setFailed('Unknown error')
-      }
     }
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    } else {
+      core.setFailed('Unknown error')
+    }
+  }
 }
 
 run()
