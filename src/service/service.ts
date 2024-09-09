@@ -84,63 +84,53 @@ export default class Service {
         return {startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId}
     }
 
-    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
-        
-        if(metrics !== null) {
+    public async createMetrics(requestService: RequestService, sonarMetrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
+        let metrics = {}
+        if(sonarMetrics) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
     
-            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+            metrics[sonarqube] = sonarMetrics; 
         }
         
         if(githubMetrics) {
-            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
+            metrics[github] = githubMetrics;
         }
         
         const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
         const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
-        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
+        const calculated_response = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
         console.log('Calculated measures: \n', data_measures);
-        
-        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
-        console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
-
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.characteristics);
-        console.log('Calculated characteristics: \n', data_characteristics);
-
-
-        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
-        console.log('TSQMI: \n', data_tsqmi);
-
-        return { data_characteristics, data_tsqmi };
+      
+        return calculated_response; 
     }
 
     public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
+        const calculated_response = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
-            return {
-                key: data.key,
-                value: data.latest.value
-            };
-        });
+    //     const characteristics = calculated_response.map((data: ResponseCalculateCharacteristics) => {
+    //         return {
+    //             key: data.key,
+    //             value: data.latest.value
+    //         };
+    //     });
 
-        const tsqmi = [{
-            key: 'tsqmi',
-            value: data_tsqmi.value
-        }];
+    //     const tsqmi = [{
+    //         key: 'tsqmi',
+    //         value: data_tsqmi.value
+    //     }];
 
-        const result: Array<CalculatedMsgram> = [{
-            repository: [],
-            version: [],
-            measures: [],
-            subcharacteristics: [],
-            characteristics: characteristics,
-            tsqmi: tsqmi
-        }];
+    //     const result: Array<CalculatedMsgram> = [{
+    //         repository: [],
+    //         version: [],
+    //         measures: [],
+    //         subcharacteristics: [],
+    //         characteristics: characteristics,
+    //         tsqmi: tsqmi
+    //     }];
 
-        console.log('Result: \n', JSON.stringify(result));
-        return result;
-    }
+    //     console.log('Result: \n', JSON.stringify(result));
+    //     return result;
+    // }
 }

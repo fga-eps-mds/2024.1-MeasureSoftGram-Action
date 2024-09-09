@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import Sonarqube from "../sonarqube";
 
 export interface Organization {
     id: number;
@@ -207,30 +208,9 @@ export class RequestService {
         return response?.data?.data;
     }
 
-    public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {
+    public async calculateMathModel(metrics: object, orgId: number, productId: number, repoId: number): Promise<ResponseCalculateMeasures[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: measuresToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-    
-    public async calculateCharacteristics(orgId: number, productId: number, repoId: number, characteristicToCalculate: {key: string}[]): Promise<ResponseCalculateCharacteristics[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: characteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-
-    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number, subcharacteristicToCalculate: {key: string}[]): Promise<ResponseCalculateSubcharacteristics[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: subcharacteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-
-    public async calculateTSQMI(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateTSQMI> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
-        const response = await this.makeRequest('post', url);
+        const response = await this.makeRequest('post', url, metrics);
         return response?.data;
     }
 }
