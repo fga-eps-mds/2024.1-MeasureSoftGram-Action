@@ -13311,7 +13311,7 @@ async function run() {
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
         const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false;
+        const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13521,7 +13521,7 @@ class Service {
     async createMetrics(requestService, sonarMetrics, githubMetrics, orgId, productId, repositoryId) {
         let metrics = {};
         if (sonarMetrics) {
-            const string_metrics = JSON.stringify(metrics);
+            // const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
             metrics.sonarqube = sonarMetrics;
         }

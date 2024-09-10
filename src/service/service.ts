@@ -91,7 +91,7 @@ export default class Service {
     public async createMetrics(requestService: RequestService, sonarMetrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         let metrics = {} as MathModelRequest
         if(sonarMetrics) {
-            const string_metrics = JSON.stringify(metrics);
+            // const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
             metrics.sonarqube = sonarMetrics; 
         }
