@@ -1,7 +1,6 @@
-import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
+import { Organization, Product, Repository, RequestService, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 import { GithubMetricsResponse } from "../github";
-import { parsePreConfig, PreConfig } from "../utils";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -10,6 +9,11 @@ export interface CalculatedMsgram {
     subcharacteristics: { key: string; value: number }[];
     characteristics: { key: string; value: number }[];
     tsqmi: { key: string; value: number }[];
+}
+
+interface MathModelRequest {
+    github: GithubMetricsResponse, 
+    sonarqube: MetricsResponseAPI
 }
 
 export default class Service {
@@ -85,52 +89,28 @@ export default class Service {
     }
 
     public async createMetrics(requestService: RequestService, sonarMetrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
-        let metrics = {}
+        let metrics = {} as MathModelRequest
         if(sonarMetrics) {
             const string_metrics = JSON.stringify(metrics);
             console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-    
-            metrics[sonarqube] = sonarMetrics; 
+            metrics.sonarqube = sonarMetrics; 
         }
         
         if(githubMetrics) {
-            metrics[github] = githubMetrics;
+            metrics.github = githubMetrics;
         }
-        
-        const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
-        const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
+         
         const calculated_response = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
-        console.log('Calculated measures: \n', data_measures);
+        console.log('Calculated response: \n', calculated_response);
       
         return calculated_response; 
     }
 
     public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const calculated_response = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
+        const result = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-    //     const characteristics = calculated_response.map((data: ResponseCalculateCharacteristics) => {
-    //         return {
-    //             key: data.key,
-    //             value: data.latest.value
-    //         };
-    //     });
-
-    //     const tsqmi = [{
-    //         key: 'tsqmi',
-    //         value: data_tsqmi.value
-    //     }];
-
-    //     const result: Array<CalculatedMsgram> = [{
-    //         repository: [],
-    //         version: [],
-    //         measures: [],
-    //         subcharacteristics: [],
-    //         characteristics: characteristics,
-    //         tsqmi: tsqmi
-    //     }];
-
-    //     console.log('Result: \n', JSON.stringify(result));
-    //     return result;
-    // }
+        console.log('Result: \n', JSON.stringify(result));
+        return result;
+    }
 }
