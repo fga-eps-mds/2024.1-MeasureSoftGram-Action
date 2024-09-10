@@ -42,8 +42,6 @@ jobs:
           msgramServiceToken: ${{ secrets.MSGRAM_SERVICE_TOKEN }} # Token para acessar o serviço MeasureSoftGram
           productName: "" # Nome do produto
           workflowName: 'nome_do_seu_worflow_de_build' # Nome do seu worflow que realiza a build da release
-          collectSonarqubeMetrics: false # Flag que determina se métricas do Sonarqube serão persistidas
-          collectGithubMetrics: true # Flag que determina se métricas do Github serão persistidas
           usLabel: "US" # Label usada para se referir a Histórias de Usuário no seu projeto
 ```
 

@@ -90,9 +90,8 @@ export default class Service {
 
     public async createMetrics(requestService: RequestService, sonarMetrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         let metrics = {} as MathModelRequest
+        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
         if(sonarMetrics) {
-            // const string_metrics = JSON.stringify(metrics);
-            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
             metrics.sonarqube = sonarMetrics; 
         }
         
@@ -100,17 +99,16 @@ export default class Service {
             metrics.github = githubMetrics;
         }
          
-        const calculated_response = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
-        console.log('Calculated response: \n', calculated_response);
-      
-        return calculated_response; 
+        const calculatedResponse = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
+
+        return calculatedResponse; 
     }
 
     public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
         const result = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        console.log('Result: \n', JSON.stringify(result));
+        console.log('Calculation of the MeasureSoftGram mathematical model completed successfully. Check the web application to see the data');
         return result;
     }
 }

@@ -19,8 +19,6 @@ export async function run() {
     const githubToken = core.getInput('githubToken', {required: true});
     const productName = core.getInput('productName');
     const workflowName = core.getInput('workflowName')
-    const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false
-    const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false
     const service = new Service(repo.repo, repo.owner, productName, currentDate);
     const requestService = new RequestService();
     requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -34,20 +32,13 @@ export async function run() {
     
     let metrics: MetricsResponseAPI | null = null
     
-    if (collectSonarqubeMetrics) {
-      metrics = await sonarqube.getMeasures({
-        pageSize: 500,
-        pullRequestNumber: null,
-      })
-    }
-    
+    metrics = await sonarqube.getMeasures({
+      pageSize: 500,
+      pullRequestNumber: null,
+    })
     
     let githubMetrics: GithubMetricsResponse | null = null
-    
-    if (collectGithubMetrics) {
-      githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
-    }
-    
+    githubMetrics = await githubApiService.fetchGithubMetrics(workflowName)
     const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId)
 
     if (pull_request) {

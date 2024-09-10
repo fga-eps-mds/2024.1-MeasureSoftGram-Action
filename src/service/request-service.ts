@@ -118,7 +118,6 @@ export class RequestService {
     }
 
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
-        console.log("URL REQUES ", url," method: ", method, " data", JSON.stringify(data))
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -188,6 +187,11 @@ export class RequestService {
     public async calculateMathModel(metrics: object, orgId: number, productId: number, repoId: number): Promise<CalculatedMsgram[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
         const response = await this.makeRequest('post', url, metrics);
-        return response?.data;
+        if (response?.status == 200 && response.data) {
+            console.log(`Data received. Status code: ${response?.status}`);
+            return response?.data;
+        } else {
+            throw new Error('No data received from the API.');
+        }
     }
 }

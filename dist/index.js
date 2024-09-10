@@ -13310,8 +13310,6 @@ async function run() {
         const githubToken = core.getInput('githubToken', { required: true });
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
-        const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = core.getInput('collectGithubMetrics') === 'true' ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13322,16 +13320,12 @@ async function run() {
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         let metrics = null;
-        if (collectSonarqubeMetrics) {
-            metrics = await sonarqube.getMeasures({
-                pageSize: 500,
-                pullRequestNumber: null,
-            });
-        }
+        metrics = await sonarqube.getMeasures({
+            pageSize: 500,
+            pullRequestNumber: null,
+        });
         let githubMetrics = null;
-        if (collectGithubMetrics) {
-            githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
-        }
+        githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
         if (pull_request) {
             console.log('Creating comment');
@@ -13382,7 +13376,6 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
-        console.log("URL REQUES ", url, " method: ", method, " data", JSON.stringify(data));
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -13447,7 +13440,13 @@ class RequestService {
     async calculateMathModel(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
         const response = await this.makeRequest('post', url, metrics);
-        return response === null || response === void 0 ? void 0 : response.data;
+        if ((response === null || response === void 0 ? void 0 : response.status) == 200 && response.data) {
+            console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
+            return response === null || response === void 0 ? void 0 : response.data;
+        }
+        else {
+            throw new Error('No data received from the API.');
+        }
     }
 }
 exports.RequestService = RequestService;
@@ -13520,22 +13519,20 @@ class Service {
     }
     async createMetrics(requestService, sonarMetrics, githubMetrics, orgId, productId, repositoryId) {
         let metrics = {};
+        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
         if (sonarMetrics) {
-            // const string_metrics = JSON.stringify(metrics);
-            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
             metrics.sonarqube = sonarMetrics;
         }
         if (githubMetrics) {
             metrics.github = githubMetrics;
         }
-        const calculated_response = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
-        console.log('Calculated response: \n', calculated_response);
-        return calculated_response;
+        const calculatedResponse = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
+        return calculatedResponse;
     }
     async calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
         this.logRepoInfo();
         const result = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
-        console.log('Result: \n', JSON.stringify(result));
+        console.log('Calculation of the MeasureSoftGram mathematical model completed successfully. Check the web application to see the data');
         return result;
     }
 }
@@ -13638,27 +13635,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parsePreConfig = exports.getGitHubInfo = exports.getInfo = exports.CalculateRequestData = void 0;
+exports.getGitHubInfo = exports.getInfo = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-class CalculateRequestData {
-    constructor() {
-        this.characteristics = [];
-        this.subcharacteristics = [];
-        this.measures = [];
-        this.metrics = [];
-    }
-    addMeasureAndMetrics(measure) {
-        this.measures.push({ key: measure.key });
-        this.metrics.concat(measure.metrics);
-    }
-    addCharacteristic(characteristic) {
-        this.characteristics.push({ key: characteristic.key });
-    }
-    addSubcharacteristic(subcharacteristic) {
-        this.subcharacteristics.push({ key: subcharacteristic.key });
-    }
-}
-exports.CalculateRequestData = CalculateRequestData;
 function getInfo(repo) {
     return {
         project: {
@@ -13681,20 +13659,6 @@ function getGitHubInfo(repo, beginDate) {
     };
 }
 exports.getGitHubInfo = getGitHubInfo;
-function parsePreConfig(preConfig) {
-    const response = new CalculateRequestData();
-    for (const characteristic of preConfig.characteristics) {
-        response.addCharacteristic(characteristic);
-        for (const subcharacteristic of characteristic.subcharacteristics) {
-            response.addSubcharacteristic(subcharacteristic);
-            for (const measure of subcharacteristic.measures) {
-                response.addMeasureAndMetrics(measure);
-            }
-        }
-    }
-    return response;
-}
-exports.parsePreConfig = parsePreConfig;
 
 
 /***/ }),
