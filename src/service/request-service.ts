@@ -187,11 +187,11 @@ export class RequestService {
     public async calculateMathModel(metrics: object, orgId: number, productId: number, repoId: number): Promise<CalculatedMsgram[]> {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
         const response = await this.makeRequest('post', url, metrics);
-        if (response?.status == 200 && response.data) {
+        if (response?.status == 201 && response.data) {
             console.log(`Data received. Status code: ${response?.status}`);
             return response?.data;
         } else {
-            throw new Error('No data received from the API.');
+            throw new Error('The data was not calculated properly .');
         }
     }
 }
