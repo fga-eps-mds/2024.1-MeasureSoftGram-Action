@@ -13440,12 +13440,12 @@ class RequestService {
     async calculateMathModel(metrics, orgId, productId, repoId) {
         const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
         const response = await this.makeRequest('post', url, metrics);
-        if ((response === null || response === void 0 ? void 0 : response.status) == 200 && response.data) {
+        if ((response === null || response === void 0 ? void 0 : response.status) == 201 && response.data) {
             console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
             return response === null || response === void 0 ? void 0 : response.data;
         }
         else {
-            throw new Error('No data received from the API.');
+            throw new Error('The data was not calculated properly .');
         }
     }
 }
