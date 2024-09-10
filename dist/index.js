@@ -13382,7 +13382,7 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
-        console.log("URL REQUES ", url, " method: ", method, " data", data);
+        console.log("URL REQUES ", url, " method: ", method, " data", JSON.stringify(data));
         const config = {
             headers: {
                 'Content-Type': 'application/json',
