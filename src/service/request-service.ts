@@ -172,7 +172,7 @@ export class RequestService {
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release`;    
         const response =  await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response?.status}`);
         return response?.data.results;
