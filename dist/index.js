@@ -13432,14 +13432,14 @@ class RequestService {
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async listReleases(orgId, productId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release`;
         const response = await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
         return response === null || response === void 0 ? void 0 : response.data.results;
     }
     async getCurrentPreConfig(orgId, productId) {
         var _a;
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/release-config`;
         const response = await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
         return (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.data;

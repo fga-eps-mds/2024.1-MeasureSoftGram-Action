@@ -179,7 +179,7 @@ export class RequestService {
     }
 
     public async getCurrentPreConfig(orgId: number, productId: number) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/release-config`
         const response = await this.makeRequest('get', url); 
         console.log(`Data received. Status code: ${response?.status}`);
         return response?.data?.data;
