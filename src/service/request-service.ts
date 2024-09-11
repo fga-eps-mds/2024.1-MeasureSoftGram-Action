@@ -92,9 +92,9 @@ export interface ResponseCalculateTSQMI {
     created_at: string;
 }
 
-export interface ResponseCalculateMeasures {
-    metric: ResponseCollectedMetrics[];
-    measures: ResponseCalculateMeasures[];
+export interface ResponseCalculateMathModel {
+    metrics: ResponseCollectedMetrics[];
+    measures: ResponseCalculateMathModel[];
     subcharacteristics: ResponseCalculateSubcharacteristics; 
     characteristics: ResponseCalculateCharacteristics; 
     tsqmi: ResponseCalculateTSQMI[]
