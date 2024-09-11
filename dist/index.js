@@ -13310,8 +13310,6 @@ async function run() {
         const githubToken = core.getInput('githubToken', { required: true });
         const productName = core.getInput('productName');
         const workflowName = core.getInput('workflowName');
-        const collectSonarqubeMetrics = core.getInput('collectSonarqubeMetrics') === 'true' ? true : false;
-        const collectGithubMetrics = !core.getInput('collectGithubMetrics') ? true : false;
         const service = new service_1.default(repo.repo, repo.owner, productName, currentDate);
         const requestService = new request_service_1.RequestService();
         requestService.setMsgToken(core.getInput('msgramServiceToken'));
@@ -13322,16 +13320,12 @@ async function run() {
         const octokit = github.getOctokit(githubToken);
         const { pull_request } = github.context.payload;
         let metrics = null;
-        if (collectSonarqubeMetrics) {
-            metrics = await sonarqube.getMeasures({
-                pageSize: 500,
-                pullRequestNumber: null,
-            });
-        }
+        metrics = await sonarqube.getMeasures({
+            pageSize: 500,
+            pullRequestNumber: null,
+        });
         let githubMetrics = null;
-        if (collectGithubMetrics) {
-            githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
-        }
+        githubMetrics = await githubApiService.fetchGithubMetrics(workflowName);
         const result = await service.calculateResults(requestService, metrics, githubMetrics, releaseData.orgId, releaseData.productId, releaseData.repositoryId);
         if (pull_request) {
             console.log('Creating comment');
@@ -13382,7 +13376,6 @@ class RequestService {
         this.MSG_TOKEN = token;
     }
     async makeRequest(method, url, data = {}) {
-        console.log("URL REQUES ", url, " method: ", method, " data", data);
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -13432,51 +13425,28 @@ class RequestService {
         return response === null || response === void 0 ? void 0 : response.data;
     }
     async listReleases(orgId, productId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release`;
         const response = await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
         return response === null || response === void 0 ? void 0 : response.data.results;
     }
-    async insertMetrics(metrics, orgId, productId, repoId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
-        const jsonData = JSON.parse(metrics);
-        const response = await this.makeRequest('post', url, jsonData);
-        return response === null || response === void 0 ? void 0 : response.data;
-    }
-    async insertGithubMetrics(metrics, orgId, productId, repoId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
-        await this.makeRequest('post', url, metrics);
-        return null;
-    }
     async getCurrentPreConfig(orgId, productId) {
         var _a;
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`;
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/release-config`;
         const response = await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
         return (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.data;
     }
-    async calculateMeasures(orgId, productId, repoId, measuresToCalculate) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: measuresToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response === null || response === void 0 ? void 0 : response.data;
-    }
-    async calculateCharacteristics(orgId, productId, repoId, characteristicToCalculate) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: characteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response === null || response === void 0 ? void 0 : response.data;
-    }
-    async calculateSubCharacteristics(orgId, productId, repoId, subcharacteristicToCalculate) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: subcharacteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response === null || response === void 0 ? void 0 : response.data;
-    }
-    async calculateTSQMI(orgId, productId, repoId) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
-        const response = await this.makeRequest('post', url);
-        return response === null || response === void 0 ? void 0 : response.data;
+    async calculateMathModel(metrics, orgId, productId, repoId) {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
+        const response = await this.makeRequest('post', url, metrics);
+        if ((response === null || response === void 0 ? void 0 : response.status) == 201 && response.data) {
+            console.log(`Data received. Status code: ${response === null || response === void 0 ? void 0 : response.status}`);
+            return response === null || response === void 0 ? void 0 : response.data;
+        }
+        else {
+            throw new Error('The data was not calculated properly .');
+        }
     }
 }
 exports.RequestService = RequestService;
@@ -13485,12 +13455,11 @@ exports.RequestService = RequestService;
 /***/ }),
 
 /***/ 7686:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const utils_1 = __nccwpck_require__(1314);
 class Service {
     constructor(repo, owner, productName, currentDate) {
         this.repo = repo;
@@ -13548,49 +13517,22 @@ class Service {
         }
         return { startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId };
     }
-    async createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
-        if (metrics !== null) {
-            const string_metrics = JSON.stringify(metrics);
-            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+    async createMetrics(requestService, sonarMetrics, githubMetrics, orgId, productId, repositoryId) {
+        let metrics = {};
+        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+        if (sonarMetrics) {
+            metrics.sonarqube = sonarMetrics;
         }
         if (githubMetrics) {
-            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
+            metrics.github = githubMetrics;
         }
-        const currentPreConfig = await requestService.getCurrentPreConfig(orgId, productId);
-        const currentPreConfigParsed = (0, utils_1.parsePreConfig)(currentPreConfig);
-        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
-        console.log('Calculated measures: \n', data_measures);
-        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
-        console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.characteristics);
-        console.log('Calculated characteristics: \n', data_characteristics);
-        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
-        console.log('TSQMI: \n', data_tsqmi);
-        return { data_characteristics, data_tsqmi };
+        const calculatedResponse = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
+        return calculatedResponse;
     }
     async calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
-        const characteristics = data_characteristics.map((data) => {
-            return {
-                key: data.key,
-                value: data.latest.value
-            };
-        });
-        const tsqmi = [{
-                key: 'tsqmi',
-                value: data_tsqmi.value
-            }];
-        const result = [{
-                repository: [],
-                version: [],
-                measures: [],
-                subcharacteristics: [],
-                characteristics: characteristics,
-                tsqmi: tsqmi
-            }];
-        console.log('Result: \n', JSON.stringify(result));
+        const result = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
+        console.log('Calculation of the MeasureSoftGram mathematical model completed successfully. Check the web application to see the data');
         return result;
     }
 }
@@ -13693,27 +13635,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parsePreConfig = exports.getGitHubInfo = exports.getInfo = exports.CalculateRequestData = void 0;
+exports.getGitHubInfo = exports.getInfo = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-class CalculateRequestData {
-    constructor() {
-        this.characteristics = [];
-        this.subcharacteristics = [];
-        this.measures = [];
-        this.metrics = [];
-    }
-    addMeasureAndMetrics(measure) {
-        this.measures.push({ key: measure.key });
-        this.metrics.concat(measure.metrics);
-    }
-    addCharacteristic(characteristic) {
-        this.characteristics.push({ key: characteristic.key });
-    }
-    addSubcharacteristic(subcharacteristic) {
-        this.subcharacteristics.push({ key: subcharacteristic.key });
-    }
-}
-exports.CalculateRequestData = CalculateRequestData;
 function getInfo(repo) {
     return {
         project: {
@@ -13736,20 +13659,6 @@ function getGitHubInfo(repo, beginDate) {
     };
 }
 exports.getGitHubInfo = getGitHubInfo;
-function parsePreConfig(preConfig) {
-    const response = new CalculateRequestData();
-    for (const characteristic of preConfig.characteristics) {
-        response.addCharacteristic(characteristic);
-        for (const subcharacteristic of characteristic.subcharacteristics) {
-            response.addSubcharacteristic(subcharacteristic);
-            for (const measure of subcharacteristic.measures) {
-                response.addMeasureAndMetrics(measure);
-            }
-        }
-    }
-    return response;
-}
-exports.parsePreConfig = parsePreConfig;
 
 
 /***/ }),

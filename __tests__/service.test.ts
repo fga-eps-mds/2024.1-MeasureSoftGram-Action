@@ -1,6 +1,6 @@
 import { RequestService } from '../src/service/request-service';
 import Service from '../src/service/service';
-import { bodyCalculateCharacteristicsResponse, bodyCalculateMeasuresResponse, bodyCalculateTSQMIResponse, bodyCalculateSubcharacteristicsResponse, bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics, githubMetricsAPIResponse, preConfigResponse } from './test-data/api-response';
+import { bodyListOrganizationsResponse, bodyListProductsResponse, bodyListReleaseResponse, bodyListRepositoriesResponse, bodySonarCloudResponseMetrics, githubMetricsAPIResponse, calculatedMathModelResponse, bodyCalculateMathModelRequest } from './test-data/api-response';
 
 describe('Create message Tests', () => {
     const owner = 'fga-eps-mds';
@@ -58,65 +58,21 @@ describe('Create message Tests', () => {
 
     it('should return the correct result when running the function to create metrics ', async () => {
         const service = new Service(repositoryName, owner, productName,currentDate);
-        requestService.insertGithubMetrics = jest.fn()
-        requestService.insertMetrics = jest.fn();
-        requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
-        requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
-        requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
-        requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
-        requestService.getCurrentPreConfig = jest.fn().mockResolvedValue(preConfigResponse); 
-
+        requestService.calculateMathModel = jest.fn().mockResolvedValue(calculatedMathModelResponse);
         const result = await service.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        expect(requestService.insertMetrics).toHaveBeenCalledWith(
-            JSON.stringify(metrics),
-            orgId,
-            productId,
-            repositoryId
-        );
- 
-       expect(requestService.calculateMeasures).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "passed_tests"}, {"key": "tests_builds"}]);
-        expect(requestService.calculateCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "reliability"}]);
-        expect(requestService.calculateSubCharacteristics).toHaveBeenCalledWith(orgId, productId, repositoryId, [{"key": "reliability"}]);    
-        expect(requestService.calculateTSQMI).toHaveBeenCalledWith(orgId, productId, repositoryId);
-
-        expect(result).toEqual({
-            data_characteristics: bodyCalculateCharacteristicsResponse,
-            data_tsqmi: bodyCalculateTSQMIResponse
-        });
+        expect(result).toEqual(calculatedMathModelResponse);
     });
 
     it('should return the correct result when running the function to calculate result', async () => {
-        requestService.insertMetrics = jest.fn();
-        requestService.calculateMeasures = jest.fn().mockResolvedValue(bodyCalculateMeasuresResponse);
-        requestService.calculateCharacteristics = jest.fn().mockResolvedValue(bodyCalculateCharacteristicsResponse);
-        requestService.calculateSubCharacteristics = jest.fn().mockResolvedValue(bodyCalculateSubcharacteristicsResponse);
-        requestService.calculateTSQMI = jest.fn().mockResolvedValue(bodyCalculateTSQMIResponse);
+        requestService.calculateMathModel = jest.fn().mockResolvedValue(calculatedMathModelResponse);
         requestService.listOrganizations = jest.fn().mockResolvedValue(bodyListOrganizationsResponse);
         requestService.listProducts = jest.fn().mockResolvedValue(bodyListProductsResponse);
         requestService.listRepositories = jest.fn().mockResolvedValue(bodyListRepositoriesResponse);
         requestService.listReleases = jest.fn().mockResolvedValue(bodyListReleaseResponse);
-        requestService.getCurrentPreConfig = jest.fn().mockResolvedValue(preConfigResponse); 
 
         const result = await service.calculateResults(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        expect(result).toEqual([
-            {
-                "characteristics": [
-                    {
-                        "key": "reliability",
-                        "value": 0.9254618113429579
-                    }
-                ],
-                "measures": [],
-                "repository": [],
-                "tsqmi": [
-                    { 
-                        "key": "tsqmi", 
-                        "value": 0.8359399436161667 
-                    }], 
-                    "subcharacteristics": [], 
-                    "version": []
-            }]);
+        expect(result).toEqual(calculatedMathModelResponse);
     });
 });
