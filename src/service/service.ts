@@ -1,7 +1,6 @@
-import { Organization, Product, Repository, RequestService, ResponseCalculateCharacteristics, ResponseListReleases } from "./request-service";
+import { Organization, Product, Repository, RequestService, ResponseListReleases } from "./request-service";
 import { MetricsResponseAPI } from '../sonarqube';
 import { GithubMetricsResponse } from "../github";
-import { parsePreConfig, PreConfig } from "../utils";
 
 export interface CalculatedMsgram {
     repository: { key: string; value: string }[];
@@ -10,6 +9,11 @@ export interface CalculatedMsgram {
     subcharacteristics: { key: string; value: number }[];
     characteristics: { key: string; value: number }[];
     tsqmi: { key: string; value: number }[];
+}
+
+interface MathModelRequest {
+    github: GithubMetricsResponse, 
+    sonarqube: MetricsResponseAPI
 }
 
 export default class Service {
@@ -84,63 +88,27 @@ export default class Service {
         return {startAt: responseStart, orgId: orgId, productId: productId, repositoryId: repositoryId}
     }
 
-    public async createMetrics(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
-        
-        if(metrics !== null) {
-            const string_metrics = JSON.stringify(metrics);
-            console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-    
-            await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
+    public async createMetrics(requestService: RequestService, sonarMetrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
+        const metrics = {} as MathModelRequest
+        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
+        if(sonarMetrics) {
+            metrics.sonarqube = sonarMetrics; 
         }
         
         if(githubMetrics) {
-            await requestService.insertGithubMetrics(githubMetrics, orgId, productId, repositoryId);
+            metrics.github = githubMetrics;
         }
-        
-        const currentPreConfig: PreConfig = await requestService.getCurrentPreConfig(orgId, productId); 
-        const currentPreConfigParsed = parsePreConfig(currentPreConfig); 
-        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId, currentPreConfigParsed.measures);
-        console.log('Calculated measures: \n', data_measures);
-        
-        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.subcharacteristics);
-        console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
+         
+        const calculatedResponse = await requestService.calculateMathModel(metrics, orgId, productId, repositoryId);
 
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId, currentPreConfigParsed.characteristics);
-        console.log('Calculated characteristics: \n', data_characteristics);
-
-
-        const data_tsqmi = await requestService.calculateTSQMI(orgId, productId, repositoryId);
-        console.log('TSQMI: \n', data_tsqmi);
-
-        return { data_characteristics, data_tsqmi };
+        return calculatedResponse; 
     }
 
     public async calculateResults(requestService: RequestService, metrics: MetricsResponseAPI | null, githubMetrics: GithubMetricsResponse | null, orgId: number, productId: number, repositoryId: number) {
         this.logRepoInfo();
-        const { data_characteristics, data_tsqmi } = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
+        const result = await this.createMetrics(requestService, metrics, githubMetrics, orgId, productId, repositoryId);
 
-        const characteristics = data_characteristics.map((data: ResponseCalculateCharacteristics) => {
-            return {
-                key: data.key,
-                value: data.latest.value
-            };
-        });
-
-        const tsqmi = [{
-            key: 'tsqmi',
-            value: data_tsqmi.value
-        }];
-
-        const result: Array<CalculatedMsgram> = [{
-            repository: [],
-            version: [],
-            measures: [],
-            subcharacteristics: [],
-            characteristics: characteristics,
-            tsqmi: tsqmi
-        }];
-
-        console.log('Result: \n', JSON.stringify(result));
+        console.log('Calculation of the MeasureSoftGram mathematical model completed successfully. Check the web application to see the data');
         return result;
     }
 }

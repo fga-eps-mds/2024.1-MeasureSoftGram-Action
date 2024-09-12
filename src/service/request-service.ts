@@ -1,4 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import Sonarqube from "../sonarqube";
+import { CalculatedMsgram } from "./service";
 
 export interface Organization {
     id: number;
@@ -65,47 +67,37 @@ export interface ResponseListOrganizations {
 
 export interface ResponseCalculateCharacteristics {
     id: number;
-    key: string;
-    name: string;
-    description: string;
-    latest: {
-        id: number;
-        value: number;
-        created_at: string;
-        characteristic_id: number;
-    }
+    value: number;
+    created_at: string;
+    characteristic_id: number;
 }
 
 export interface ResponseCalculateSubcharacteristics {
     id: number;
-    key: string;
-    name: string;
-    description: string;
-    latest: {
-        id: number;
-        value: number;
-        created_at: string;
-        subcharacteristic_id: number;
-    }
+    value: number;
+    created_at: string;
+    subcharacteristic_id: number;
 }
 
-export interface ResponseCalculateMeasures {
+export interface ResponseCollectedMetrics {
     id: number;
-    key: string;
-    name: string;
-    description: string;
-    latest: {
-        id: number;
-        value: number;
-        created_at: string;
-        measure_id: number;
-    }
+    value: number;
+    created_at: string;
+    metric_id: number;
 }
 
 export interface ResponseCalculateTSQMI {
     id: number;
     value: number;
     created_at: string;
+}
+
+export interface ResponseCalculateMathModel {
+    metrics: ResponseCollectedMetrics[];
+    measures: ResponseCalculateMathModel[];
+    subcharacteristics: ResponseCalculateSubcharacteristics; 
+    characteristics: ResponseCalculateCharacteristics; 
+    tsqmi: ResponseCalculateTSQMI[]
 }
 
 export class RequestService {
@@ -126,7 +118,6 @@ export class RequestService {
     }
 
     private async makeRequest(method: 'get' | 'post', url: string, data: object = {}): Promise<AxiosResponse | null> {
-        console.log("URL REQUES ", url," method: ", method, " data", data)
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -180,57 +171,27 @@ export class RequestService {
     }
 
     public async listReleases(orgId: number, productId: number): Promise<ResponseListReleases[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release/all`;    
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/release`;    
         const response =  await this.makeRequest('get', url);
         console.log(`Data received. Status code: ${response?.status}`);
         return response?.data.results;
     }
-    
-
-    public async insertMetrics(metrics: string, orgId: number, productId: number, repoId: number): Promise<undefined> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
-        const jsonData = JSON.parse(metrics);
-        const response = await this.makeRequest('post', url, jsonData);
-        return response?.data;
-    }
-
-    public async insertGithubMetrics(metrics: object, orgId: number, productId: number, repoId: number): Promise<null> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
-        await this.makeRequest('post', url, metrics);
-        return null;
-    }
 
     public async getCurrentPreConfig(orgId: number, productId: number) {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/pre-config`
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/current/release-config`
         const response = await this.makeRequest('get', url); 
         console.log(`Data received. Status code: ${response?.status}`);
         return response?.data?.data;
     }
 
-    public async calculateMeasures(orgId: number, productId: number, repoId: number, measuresToCalculate: {key: string}[]): Promise<ResponseCalculateMeasures[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`;
-        const data = { measures: measuresToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-    
-    public async calculateCharacteristics(orgId: number, productId: number, repoId: number, characteristicToCalculate: {key: string}[]): Promise<ResponseCalculateCharacteristics[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`;
-        const data = { characteristics: characteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-
-    public async calculateSubCharacteristics(orgId: number, productId: number, repoId: number, subcharacteristicToCalculate: {key: string}[]): Promise<ResponseCalculateSubcharacteristics[]> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`;
-        const data = { subcharacteristics: subcharacteristicToCalculate };
-        const response = await this.makeRequest('post', url, data);
-        return response?.data;
-    }
-
-    public async calculateTSQMI(orgId: number, productId: number, repoId: number): Promise<ResponseCalculateTSQMI> {
-        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`;
-        const response = await this.makeRequest('post', url);
-        return response?.data;
+    public async calculateMathModel(metrics: object, orgId: number, productId: number, repoId: number): Promise<CalculatedMsgram[]> {
+        const url = `${this.baseUrl}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`;
+        const response = await this.makeRequest('post', url, metrics);
+        if (response?.status == 201 && response.data) {
+            console.log(`Data received. Status code: ${response?.status}`);
+            return response?.data;
+        } else {
+            throw new Error('The data was not calculated properly .');
+        }
     }
 }

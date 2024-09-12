@@ -2,12 +2,9 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
 import {
-  bodyCalculateCharacteristicsResponse,
-  bodyCalculateSubcharacteristicsResponse,
-  bodyCalculateTSQMIResponse,
-  bodyCalculateMeasuresResponse,
-  bodyInsertMetricsResponse,
-  githubMetricsAPIResponse
+  calculatedMathModelResponse, 
+  bodyCalculateMathModelRequest
+
 } from './test-data/api-response';
 import { RequestService } from '../src/service/request-service';
 
@@ -74,97 +71,11 @@ describe('RequestService', () => {
       { "id": 11, "release_name": "Release 001", "start_at": "2023-12-20T00:00:00-03:00", "created_by": 66, "end_at": "2023-12-25T00:00:00-03:00" },
       { "id": 10, "release_name": "teste", "start_at": "2023-06-05T00:00:00-03:00", "created_by": 80, "end_at": "2023-06-12T00:00:00-03:00" }
     ];
-    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release/all`).reply(200, { results: releases });
+    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/release`).reply(200, { results: releases });
 
     const response = await service.listReleases(1, 3);
 
     expect(response).toEqual(releases);
-  });
-
-  test('should get preconfig', async () => {
-    mockAxios.onGet(`${service.getBaseUrl()}organizations/1/products/3/current/pre-config`).reply(200, { data: 'success' });
-
-    const response = await service.getCurrentPreConfig(1, 3);
-
-    expect(response).toEqual('success');
-  });
-
-  test('should successfully insert metrics', async () => {
-    const metrics = '{"metric1":"value1", "metric2":"value2"}'; // a JSON string
-    const orgId = 1;
-    const productId = 1;
-    const repoId = 1;
-
-    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/sonarqube/`;
-
-    mockAxios.onPost(expectedUrl).reply(200, bodyInsertMetricsResponse);
-
-    const result = await service.insertMetrics(metrics, orgId, productId, repoId);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(JSON.parse(mockAxios.history.post[0].data)).toEqual(JSON.parse(metrics));
-    expect(mockAxios.history.post[0].url).toBe(expectedUrl);
-    expect(result).toEqual(bodyInsertMetricsResponse);
-  });
-
-  test('should successfully insert github metrics', async () => {
-    const metrics = githubMetricsAPIResponse;
-    const orgId = 1;
-    const productId = 1;
-    const repoId = 1;
-
-    const expectedUrl = `${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/collectors/github/`;
-
-    mockAxios.onPost(expectedUrl).reply(200);
-
-    await service.insertGithubMetrics(metrics, orgId, productId, repoId);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].url).toBe(expectedUrl);
-  });
-
-  test('should successfully calculate measures', async () => {
-    const orgId = 1;
-    const productId = 1;
-    const repoId = 1;
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/measures/`)
-      .reply(200, bodyCalculateMeasuresResponse);
-
-    const response = await service.calculateMeasures(orgId, productId, repoId, [{key: "passed_tests"}, {key: "test_builds"}]);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toBeDefined();
-    expect(response).toEqual(bodyCalculateMeasuresResponse);
-  });
-
-  test('should successfully calculate characteristics', async () => {
-    const orgId = 1;
-    const productId = 1;
-    const repoId = 1;
-
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/characteristics/`)
-      .reply(200, bodyCalculateCharacteristicsResponse);
-
-    const response = await service.calculateCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toBeDefined();
-    expect(response).toEqual(bodyCalculateCharacteristicsResponse);
-  });
-
-  test('should successfully calculate sub-characteristics', async () => {
-    const orgId = 1;
-    const productId = 1;
-    const repoId = 1;
-
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/subcharacteristics/`)
-      .reply(200, bodyCalculateSubcharacteristicsResponse);
-
-    const response = await service.calculateSubCharacteristics(orgId, productId, repoId, [{key: "reliability"}]);
-
-    expect(mockAxios.history.post.length).toBe(1);
-    expect(mockAxios.history.post[0].data).toBeDefined();
-    expect(response).toEqual(bodyCalculateSubcharacteristicsResponse);
   });
 
   test('should successfully calculate TSQMI', async () => {
@@ -172,14 +83,14 @@ describe('RequestService', () => {
     const productId = 1;
     const repoId = 1;
 
-    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/tsqmi/`)
-      .reply(200, bodyCalculateTSQMIResponse);
+    mockAxios.onPost(`${service.getBaseUrl()}organizations/${orgId}/products/${productId}/repositories/${repoId}/calculate/math-model/`)
+      .reply(201, calculatedMathModelResponse);
 
-    const response = await service.calculateTSQMI(orgId, productId, repoId);
+    const response = await service.calculateMathModel(bodyCalculateMathModelRequest, orgId, productId, repoId);
 
     expect(mockAxios.history.post.length).toBe(1);
     expect(mockAxios.history.post[0].data).toBeDefined();
-    expect(response).toEqual(bodyCalculateTSQMIResponse);
+    expect(response).toEqual(calculatedMathModelResponse);
   });
 
   test('should throw error in case API call fails', async () => {
